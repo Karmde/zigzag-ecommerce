@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupons | zigzag</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        .coupon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .coupon-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .coupon-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .coupon-code-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin-top: 1.5rem;
+            background: #fafafa;
+        }
+
+        .coupon-code-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        .copy-btn {
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background 0.15s;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .copy-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background: #000;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: #374151;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background: white;
+            color: black;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: 2px solid #d1d5db;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            border-color: #000;
+            background: #f9fafb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translate(-50%, -20px);
+
+            min-width: 320px;
+            max-width: 500px;
+            width: max-content;
+
+            padding: 1rem 1.5rem;
+            border-radius: 14px;
+
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 500;
+
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+
+            transition:
+                opacity 0.25s ease,
+                transform 0.25s ease,
+                visibility 0.25s ease;
+
+            z-index: 9999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .toast {
+                width: calc(100% - 2rem);
+                min-width: unset;
+                max-width: unset;
+                top: 1rem;
+            }
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #282828, #252525);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+    {% include 'partials/header.html' %}
+    <main class="flex-1 pb-12">
+        <div class="px-6 md:px-12 py-8 flex items-center gap-3">
+            <h1 class="text-3xl font-bold text-black">Coupons</h1>
+            <span class="text-gray-400 text-2xl">|</span>
+            <p class="text-xl font-medium text-gray-700" id="couponCount">Loading...</p>
+        </div>
+
+        <div id="couponContainer" class="coupon-grid px-6 md:px-12">
+            <div class="empty-state">
+                <p>Loading coupons...</p>
+            </div>
+        </div>
+    </main>
+    {% include 'partials/footer.html' %}
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function formatDate(dateStr) {
+            if (!dateStr) return 'No expiry';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function formatINR(amount) {
+            return '₹' + Number(amount || 0).toLocaleString('en-IN');
+        }
+
+        function getDiscountLabel(coupon) {
+            switch (coupon.discount_type) {
+                case 'percentage':
+                    return coupon.discount_value + '% OFF';
+                case 'fixed':
+                    return formatINR(coupon.discount_value) + ' OFF';
+                case 'free_shipping':
+                    return 'FREE SHIPPING';
+                default:
+                    return coupon.discount_value + '% OFF';
+            }
+        }
+
+        function getApplicableText(coupon) {
+            if (!coupon.product_ids && !coupon.category_ids) {
+                return 'Entire Store';
+            }
+            if (coupon.category_ids && coupon.category_ids.length > 0) {
+                return coupon.category_ids.length + ' Categories';
+            }
+            if (coupon.product_ids && coupon.product_ids.length > 0) {
+                return coupon.product_ids.length + ' Products';
+            }
+            return 'Entire Store';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        async function copyCode(code) {
+            try {
+                await navigator.clipboard.writeText(code);
+                showToast('Coupon code copied: ' + code);
+            } catch (err) {
+                showToast('Failed to copy code', 'error');
+            }
+        }
+
+        async function loadCoupons() {
+            const container = document.getElementById('couponContainer');
+            const countEl = document.getElementById('couponCount');
+
+            try {
+                const res = await fetch('/coupons/active', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data?.detail || 'Failed to load coupons.');
+                }
+
+                const coupons = Array.isArray(data) ? data : [];
+
+                if (countEl) {
+                    countEl.textContent = coupons.length + ' Coupon' + (coupons.length !== 1 ? 's' : '') + ' Available';
+                }
+
+                if (coupons.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state col-span-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 14l6-6M9 5h6M5 9h6M5 9a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 01-2 2M5 9v6a2 2 0 002 2h10a2 2 0 002-2V9" />
+                            </svg>
+                            <p class="text-lg font-medium text-gray-500">No coupons available right now</p>
+                            <p class="text-sm text-gray-400 mt-1">Check back later for new deals!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = coupons.map(coupon => `
+                    <div class="coupon-card">
+                        <div class="text-center">
+                            <h2 class="text-4xl font-extrabold tracking-tight text-black">
+                                ${getDiscountLabel(coupon)}
+                            </h2>
+                            <p class="mt-2 text-sm text-gray-500">
+                                ${coupon.description || 'Discount available on your purchase'}
+                            </p>
+                        </div>
+
+                        <div class="coupon-code-box">
+                            <span class="coupon-code-text">${coupon.code}</span>
+                            <button class="copy-btn" onclick="copyCode('${coupon.code}')" title="Copy Coupon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M10 8h8a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mt-6 space-y-0">
+                            <div class="detail-row">
+                                <span class="text-sm text-gray-500">Minimum Cart</span>
+                                <span class="font-semibold text-black text-sm">${formatINR(coupon.minimum_cart_amount)}</span>
+                            </div>
+
+                            ${coupon.maximum_discount ? `
+                            <div class="detail-row">
+                                <span class="text-sm text-gray-500">Maximum Discount</span>
+                                <span class="font-semibold text-black text-sm">${formatINR(coupon.maximum_discount)}</span>
+                            </div>
+                            ` : ''}
+
+                            <div class="detail-row">
+                                <span class="text-sm text-gray-500">Applies To</span>
+                                <span class="font-semibold text-black text-sm">${getApplicableText(coupon)}</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <span class="text-sm text-gray-500">Usage Per User</span>
+                                <span class="font-semibold text-black text-sm">${coupon.usage_per_user} Time${coupon.usage_per_user !== 1 ? 's' : ''}</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <span class="text-sm text-gray-500">Valid Till</span>
+                                <span class="font-semibold text-black text-sm">${formatDate(coupon.end_date)}</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-2 gap-2">
+                            <button class="btn-primary" onclick="copyCode('${coupon.code}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M10 8h8a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
+                                </svg>
+                                Copy Code
+                            </button>
+                            <a href="/catalog" class="btn-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                Shop Now
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = `
+                    <div class="empty-state col-span-full">
+                        <p class="text-red-500 font-medium">Failed to load coupons</p>
+                        <p class="text-sm text-gray-400 mt-1">${err.message}</p>
+                        <button onclick="loadCoupons()" class="mt-4 btn-primary">Retry</button>
+                    </div>
+                `;
+                if (countEl) countEl.textContent = 'Error';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCoupons);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zig Zag - catalog</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+    </style>
+</head>
+
+<body class="bg-white">
+    {% include 'partials/header.html' %}
+    <!-- Toolbar -->
+    <div class="sticky top-0 z-20 bg-white py-3 pl-10 pr-10">
+
+        <div class="flex items-center justify-between">
+
+            <!-- product count -->
+            <div>
+                <p class="text-sm font-bold text-gray-500 mt-1">
+                    {% if search_query %}Search results for{% else %}Showing{% endif %}
+                </p>
+
+                <p class="text-[28px] font-semibold tracking-tight" id="productCount">
+                    {% if search_query %}{{ search_query }} ({{ products|length }}){% else %}{{ products|length }}
+                    products{% endif %}
+                </p>
+            </div>
+
+            <!-- Right Side Actions -->
+            <div class="flex items-center gap-8">
+
+                <!-- Hide Filters -->
+                <button id="toggleFilter"
+                    class="flex items-center gap-2 text-base font-medium hover:text-gray-500 transition">
+
+                    <span id="filterText">Show Filters</span>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 5H3" />
+                        <path d="M12 19H3" />
+                        <path d="M14 3v4" />
+                        <path d="M16 17v4" />
+                        <path d="M21 12h-9" />
+                        <path d="M21 19h-5" />
+                        <path d="M21 5h-7" />
+                        <path d="M8 10v4" />
+                        <path d="M8 12H3" />
+                    </svg>
+
+                </button>
+
+                <!-- Sort By -->
+                <div class="relative">
+
+                    <button id="sortBtn"
+                        class="flex items-center gap-2 text-base font-medium hover:text-gray-500 transition">
+
+                        <span>Sort By</span>
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+
+                    </button>
+
+                    <div id="sortDropdown"
+                        class="hidden absolute right-0 top-full mt-3 w-56 bg-white border rounded-lg shadow-lg z-50">
+
+                        <button data-sort="featured" class="sort-option w-full text-left px-4 py-3 hover:bg-gray-100">
+                            Featured
+                        </button>
+
+                        <button data-sort="newest" class="sort-option w-full text-left px-4 py-3 hover:bg-gray-100">
+                            Newest
+                        </button>
+
+                        <button data-sort="price_low_high"
+                            class="sort-option w-full text-left px-4 py-3 hover:bg-gray-100">
+                            Price: Low to High
+                        </button>
+
+                        <button data-sort="price_high_low"
+                            class="sort-option w-full text-left px-4 py-3 hover:bg-gray-100">
+                            Price: High to Low
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6 pt-6 pb-12">
+
+        <!-- Filter -->
+        <aside id="filterSidebar" class="w-full lg:w-64 shrink-0">
+
+            <div class="sticky top-28 pl-10 pr-6 flex flex-col max-h-[calc(100vh-120px)]">
+
+                <!-- Filter Title -->
+                <div class="mb-2 flex-shrink-0">
+                    <h2 class="text-xl font-semibold text-black">
+                        Filters
+                    </h2>
+                </div>
+
+                <div class="flex-shrink-0 mb-4">
+                    <button id="clearFilters"
+                        class="w-full text-sm font-medium text-red-600 border border-red-200 rounded-md py-2 hover:bg-red-50 transition hidden">
+                        Clear all filters
+                    </button>
+                </div>
+
+                <!-- Scrollable Filter Sections -->
+                <div class="flex-1 overflow-y-auto">
+
+                    <!-- Category -->
+                    <div class="py-6 border-b border-gray-200">
+
+                        <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
+                            data-target="categoryFilters" data-filter="category">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-black">
+                                    Category
+                                </h3>
+                                <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
+                                    data-filter="category">Clear</button>
+                            </div>
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 text-gray-500 filter-arrow transition-transform duration-200 rotate-180"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div class="filter-section-content hidden space-y-4" id="categoryFilters">
+                            <div class="text-gray-400 text-sm">Loading...</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="py-6 border-b border-gray-200">
+
+                        <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
+                            data-target="genderFilters" data-filter="gender">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-black">
+                                    Gender
+                                </h3>
+                                <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
+                                    data-filter="gender">Clear</button>
+                            </div>
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 text-gray-500 filter-arrow transition-transform duration-200 rotate-180"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div class="filter-section-content hidden space-y-4" id="genderFilters">
+                            <div class="text-gray-400 text-sm">Loading...</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Price -->
+                    <div class="py-6">
+
+                        <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
+                            data-target="priceFilters" data-filter="price">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-black">
+                                    Price Range
+                                </h3>
+                                <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
+                                    data-filter="price">Clear</button>
+                            </div>
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 text-gray-500 filter-arrow transition-transform duration-200 rotate-180"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div class="filter-section-content hidden space-y-3" id="priceFilters">
+                            <div class="text-gray-400 text-sm">Loading...</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Brand -->
+                    <div class="py-6 border-t border-gray-200">
+
+                        <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
+                            data-target="brandFilters" data-filter="brand">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-black">
+                                    Brand
+                                </h3>
+                                <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
+                                    data-filter="brand">Clear</button>
+                            </div>
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 text-gray-500 filter-arrow transition-transform duration-200 rotate-180"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div class="filter-section-content hidden space-y-4" id="brandFilters">
+                            <div class="text-gray-400 text-sm">Loading...</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Color -->
+                    <div class="py-6 border-t border-gray-200">
+
+                        <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
+                            data-target="colorFilters" data-filter="color">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-black">
+                                    Color
+                                </h3>
+                                <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
+                                    data-filter="color">Clear</button>
+                            </div>
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 text-gray-500 filter-arrow transition-transform duration-200 rotate-180"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div class="filter-section-content hidden space-y-4" id="colorFilters">
+                            <div class="text-gray-400 text-sm">Loading...</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Size -->
+                    <div class="py-6 border-t border-gray-200">
+
+                        <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
+                            data-target="sizeFilters" data-filter="size">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-black">
+                                    Size
+                                </h3>
+                                <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
+                                    data-filter="size">Clear</button>
+                            </div>
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 text-gray-500 filter-arrow transition-transform duration-200 rotate-180"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div class="filter-section-content hidden space-y-4" id="sizeFilters">
+                            <div class="text-gray-400 text-sm">Loading...</div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- Products -->
+        <main class="flex-1">
+
+            <!-- Products Grid -->
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-12 gap-y-12 pr-10 pl-10" id="productGrid">
+
+                {% for product in products %}
+                <a href="/product?id={{ product.id }}{% if product.color_id %}&color_id={{ product.color_id }}{% endif %}" class="block">
+                    <div>
+
+                        <!-- Image Container -->
+                        <div class="relative bg-surface rounded-lg overflow-hidden aspect-square shadow-black/15">
+
+                            {% if product.image_url %}
+                            <img src="{{ product.image_url }}"
+                                alt="{{ product.name }}{% if product.color_name %} ({{ product.color_name }}){% endif %}"
+                                class="w-full h-full object-contain">
+                            {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="mt-3">
+
+                            <p class="text-[16px] font-semibold text-black">
+                                {{ product.name }}
+                                {% if product.color_name %}
+                                ({{ product.color_name }})
+                                {% endif %}
+                            </p>
+
+                            {% if product.category_name %}
+                            <p class="text-[16px] text-gray-500 mt-1">
+                                {{ product.category_name }}
+                            </p>
+                            {% endif %}
+
+                            <div class="flex items-center gap-3 mt-2">
+                                <p class="text-[16px] font-medium text-black">
+                                    ₹{{ product.sale_price|inr }}
+                                </p>
+                                {% if product.discount_percent > 0 %}
+                                <p class="text-[14px] text-gray-400 line-through">
+                                    ₹{{ product.original_price|inr }}
+                                </p>
+                                <p class="text-[14px] font-medium text-green-500">
+                                    {{ product.discount_percent|int }}% OFF
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                </a>
+                {% else %}
+                <div class="col-span-full text-center py-20 text-gray-500 text-lg" id="noProducts">
+                    No products found.
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </main>
+
+    </div>
+    {% include 'partials/footer.html' %}
+    <template id="productCardTemplate">
+        <a href="#" class="block">
+            <div>
+                <div class="relative bg-surface rounded-lg overflow-hidden aspect-square shadow-black/15">
+                </div>
+                <div class="mt-3">
+                    <p class="text-[16px] font-semibold text-black"></p>
+                    <div class="flex items-center gap-3 mt-2">
+                        <p class="text-[16px] font-medium text-black"></p>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </template>
+    <script>
+        (function () {
+            const API_BASE = '/catalog';
+            const state = {
+                q: '{{ search_query or "" }}',
+                category: [],
+                brand: [],
+                gender: [],
+                color: [],
+                size: [],
+                min_price: null,
+                max_price: null,
+                sort: 'featured',
+                category_name: '',
+                brand_name: '',
+            };
+
+            const els = {
+                grid: document.getElementById('productGrid'),
+                count: document.getElementById('productCount'),
+                noProducts: document.getElementById('noProducts'),
+                clearBtn: document.getElementById('clearFilters'),
+                categoryFilters: document.getElementById('categoryFilters'),
+                genderFilters: document.getElementById('genderFilters'),
+                brandFilters: document.getElementById('brandFilters'),
+                colorFilters: document.getElementById('colorFilters'),
+                sizeFilters: document.getElementById('sizeFilters'),
+                priceFilters: document.getElementById('priceFilters'),
+                sortBtn: document.getElementById('sortBtn'),
+                sortDropdown: document.getElementById('sortDropdown'),
+                toggleFilter: document.getElementById('toggleFilter'),
+                filterSidebar: document.getElementById('filterSidebar'),
+                filterText: document.getElementById('filterText'),
+            };
+
+            let initialNameFilterApplied = false;
+
+            function initStateFromURL() {
+                const urlParams = new URLSearchParams(window.location.search);
+                state.q = urlParams.get('q') || '';
+                if (urlParams.has('category')) {
+                    state.category = urlParams.get('category').split(',').map(Number).filter(n => !isNaN(n));
+                }
+                if (urlParams.has('brand')) {
+                    state.brand = urlParams.get('brand').split(',').map(Number).filter(n => !isNaN(n));
+                }
+                if (urlParams.has('gender')) {
+                    state.gender = urlParams.get('gender').split(',').map(Number).filter(n => !isNaN(n));
+                }
+                if (urlParams.has('color')) {
+                    state.color = urlParams.get('color').split(',').map(Number).filter(n => !isNaN(n));
+                }
+                if (urlParams.has('size')) {
+                    state.size = urlParams.get('size').split(',').map(Number).filter(n => !isNaN(n));
+                }
+                if (urlParams.has('min_price')) {
+                    state.min_price = parseFloat(urlParams.get('min_price'));
+                }
+                if (urlParams.has('max_price')) {
+                    state.max_price = parseFloat(urlParams.get('max_price'));
+                }
+                if (urlParams.has('category_name')) {
+                    state.category_name = urlParams.get('category_name');
+                }
+                if (urlParams.has('brand_name')) {
+                    state.brand_name = urlParams.get('brand_name');
+                }
+                if (urlParams.has('sort')) {
+                    state.sort = urlParams.get('sort');
+                }
+            }
+
+            function getQueryString() {
+                const params = new URLSearchParams();
+                if (state.q) params.set('q', state.q);
+                if (state.category.length) params.set('category', state.category.join(','));
+                if (state.brand.length) params.set('brand', state.brand.join(','));
+                if (state.gender.length) params.set('gender', state.gender.join(','));
+                if (state.color.length) params.set('color', state.color.join(','));
+                if (state.size.length) params.set('size', state.size.join(','));
+                if (state.min_price !== null) params.set('min_price', state.min_price);
+                if (state.max_price !== null) params.set('max_price', state.max_price);
+                if (state.category_name) params.set('category_name', state.category_name);
+                if (state.brand_name) params.set('brand_name', state.brand_name);
+                params.set('sort', state.sort);
+                return params.toString();
+            }
+
+            function updateURL() {
+                const qs = getQueryString();
+                const url = window.location.pathname + (qs ? '?' + qs : '');
+                history.pushState(null, '', url);
+            }
+
+            function clearBtnVisible() {
+                const hasFilters = state.category.length || state.brand.length || state.gender.length ||
+                    state.color.length || state.size.length || state.min_price !== null || state.max_price !== null;
+                els.clearBtn.classList.toggle('hidden', !hasFilters);
+
+                document.querySelectorAll('.clear-section-filter').forEach(btn => {
+                    const filterType = btn.dataset.filter;
+                    let hasThisFilter = false;
+                    switch (filterType) {
+                        case 'category': hasThisFilter = state.category.length > 0; break;
+                        case 'gender': hasThisFilter = state.gender.length > 0; break;
+                        case 'brand': hasThisFilter = state.brand.length > 0; break;
+                        case 'color': hasThisFilter = state.color.length > 0; break;
+                        case 'size': hasThisFilter = state.size.length > 0; break;
+                        case 'price': hasThisFilter = state.min_price !== null || state.max_price !== null; break;
+                    }
+                    btn.classList.toggle('hidden', !hasThisFilter);
+                });
+            }
+
+            async function fetchJSON(url) {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed: ' + res.status);
+                return res.json();
+            }
+
+            function renderFilters(filters) {
+                const containerMap = {
+                    categories: els.categoryFilters,
+                    brands: els.brandFilters,
+                    genders: els.genderFilters,
+                    colors: els.colorFilters,
+                    sizes: els.sizeFilters,
+                };
+
+                for (const key in containerMap) {
+                    const container = containerMap[key];
+                    container.innerHTML = '';
+                    let items = filters[key];
+                    const activeKey = key === 'categories' ? 'category' :
+                        key === 'genders' ? 'gender' :
+                            key === 'brands' ? 'brand' :
+                                key === 'colors' ? 'color' :
+                                    key === 'sizes' ? 'size' : key;
+                    if ((key === 'colors' && state.color.length > 0) || (key === 'sizes' && state.size.length > 0)) {
+                        items = items.filter(opt => state[activeKey].includes(opt.id));
+                    }
+                    if (!items || !items.length) {
+                        container.innerHTML = '<div class="text-gray-400 text-sm">None</div>';
+                        continue;
+                    }
+                    items.forEach(opt => {
+                        const label = document.createElement('label');
+                        label.className =
+                            'flex items-center gap-3 cursor-pointer hover:text-black text-gray-700 transition';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'w-4 h-4 accent-black';
+                        checkbox.value = opt.id;
+
+                        const stateArray = state[key.slice(0, -1)] || state[key];
+                        const activeKey = key === 'categories' ? 'category' :
+                            key === 'genders' ? 'gender' :
+                                key === 'brands' ? 'brand' :
+                                    key === 'colors' ? 'color' :
+                                        key === 'sizes' ? 'size' : key;
+                        checkbox.checked = state[activeKey].includes(opt.id);
+
+                        checkbox.addEventListener('change', () => {
+
+                            // state.category_name = "";
+
+                            if (checkbox.checked) {
+                                state[activeKey].push(opt.id);
+                            } else {
+                                state[activeKey] = state[activeKey].filter(id => id !== opt.id);
+                            }
+
+                            clearBtnVisible();
+                            loadProducts();
+                            loadFilters();
+                        });
+
+                        const span = document.createElement('span');
+                        span.textContent = opt.name + ' (' + opt.count + ')';
+
+                        label.appendChild(checkbox);
+                        label.appendChild(span);
+                        container.appendChild(label);
+                    });
+                }
+
+                if (filters.price_range && filters.price_range.min !== undefined) {
+                    els.priceFilters.innerHTML = '';
+                    const min = Math.floor(filters.price_range.min);
+                    const max = Math.ceil(filters.price_range.max);
+
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-2';
+
+                    const minInput = document.createElement('input');
+                    minInput.type = 'number';
+                    minInput.placeholder = 'Min';
+                    minInput.value = state.min_price !== null ? state.min_price : '';
+                    minInput.className =
+                        'w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black';
+                    minInput.addEventListener('change', () => {
+                        state.min_price = minInput.value ? parseFloat(minInput.value) : null;
+                        loadProducts();
+                        loadFilters();
+                    });
+
+                    const dash = document.createElement('span');
+                    dash.textContent = '-';
+                    dash.className = 'text-gray-500';
+
+                    const maxInput = document.createElement('input');
+                    maxInput.type = 'number';
+                    maxInput.placeholder = 'Max';
+                    maxInput.value = state.max_price !== null ? state.max_price : '';
+                    maxInput.className =
+                        'w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black';
+                    maxInput.addEventListener('change', () => {
+                        state.max_price = maxInput.value ? parseFloat(maxInput.value) : null;
+                        loadProducts();
+                        loadFilters();
+                    });
+
+                    row.appendChild(minInput);
+                    row.appendChild(dash);
+                    row.appendChild(maxInput);
+                    els.priceFilters.appendChild(row);
+                }
+
+                clearBtnVisible();
+            }
+
+            function renderProducts(products) {
+                els.grid.innerHTML = '';
+                if (!products.length) {
+                    els.grid.innerHTML =
+                        '<div class="col-span-full text-center py-20 text-gray-500 text-lg">No products found.</div>';
+                    els.count.textContent = '0 variants';
+                    return;
+                }
+                let totalCards = 0;
+                const template = document.getElementById('productCardTemplate');
+                products.forEach(p => {
+                    totalCards++;
+                    const clone = template.content.cloneNode(true);
+                    const a = clone.querySelector('a');
+                    a.href = '/product?id=' + p.id + (p.color_id ? '&color_id=' + p.color_id : '');
+
+                    const colorName = p.color_name || null;
+                    const container = clone.querySelector('.rounded-lg');
+                    if (p.image_url) {
+                        const img = document.createElement('img');
+                        img.src = p.image_url;
+                        img.alt = colorName ? p.name + ' (' + colorName + ')' : p.name;
+                        img.className = 'w-full h-full object-contain';
+                        container.appendChild(img);
+                    } else {
+                        const noImg = document.createElement('div');
+                        noImg.className = 'w-full h-full flex items-center justify-center text-gray-400 text-sm';
+                        noImg.textContent = 'No Image';
+                        container.appendChild(noImg);
+                    }
+
+                    const paragraphs = clone.querySelectorAll('p');
+                    let nameP = null;
+                    let priceP = null;
+                    for (let i = 0; i < paragraphs.length; i++) {
+                        const cls = paragraphs[i].className || '';
+                        if (cls.indexOf('font-semibold') !== -1 && !nameP) {
+                            nameP = paragraphs[i];
+                        }
+                        if (cls.indexOf('font-medium') !== -1 && cls.indexOf('text-black') !== -1 && !priceP) {
+                            priceP = paragraphs[i];
+                        }
+                    }
+
+                    if (nameP) {
+                        nameP.textContent = p.name;
+                        if (colorName) {
+                            const span = document.createElement('span');
+                            span.className = 'text-black font-semibold';
+                            span.textContent = ' (' + colorName + ')';
+                            nameP.appendChild(span);
+                        }
+                    }
+
+                    if (priceP) {
+                        priceP.textContent = '\u20b9' + formatINR(p.sale_price);
+                    }
+
+                    const categoryName = p.category_name;
+                    if (categoryName) {
+                        const catP = document.createElement('p');
+                        catP.className = 'text-[16px] text-gray-500 mt-1';
+                        catP.textContent = categoryName;
+                        if (nameP && nameP.parentNode) {
+                            nameP.parentNode.insertBefore(catP, nameP.nextSibling);
+                        }
+                    }
+
+                    const discountPercent = Math.round(p.discount_percent);
+                    if (discountPercent > 0) {
+                        const flexContainers = clone.querySelectorAll('.flex');
+                        let priceContainer = null;
+                        for (let i = 0; i < flexContainers.length; i++) {
+                            const cls = flexContainers[i].className || '';
+                            if (cls.indexOf('gap-3') !== -1) {
+                                priceContainer = flexContainers[i];
+                                break;
+                            }
+                        }
+                        if (priceContainer) {
+                            const lineThrough = document.createElement('p');
+                            lineThrough.className = 'text-[14px] text-gray-400 line-through';
+                            lineThrough.textContent = '\u20b9' + formatINR(p.original_price);
+                            const offLabel = document.createElement('p');
+                            offLabel.className = 'text-[14px] font-medium text-green-500';
+                            offLabel.textContent = discountPercent + '% OFF';
+                            priceContainer.appendChild(lineThrough);
+                            priceContainer.appendChild(offLabel);
+                        }
+                    }
+
+                    els.grid.appendChild(clone);
+                });
+
+                const countText = state.q ? state.q + ' (' + totalCards + ')' : totalCards + ' variants';
+                els.count.textContent = countText;
+            }
+            function formatINR(value) {
+                try {
+                    value = parseFloat(value);
+                } catch (e) {
+                    return value;
+                }
+                const intPart = Math.floor(value);
+                const decPart = Math.round((value - intPart) * 100);
+                const intStr = String(intPart);
+                const groups = [];
+                if (intStr.length <= 3) {
+                    groups.push(intStr);
+                } else {
+                    groups.push(intStr.slice(-3));
+                    let rest = intStr.slice(0, -3);
+                    while (rest.length > 0) {
+                        groups.unshift(rest.slice(-2));
+                        rest = rest.slice(0, -2);
+                    }
+                }
+                let result = groups.join(',');
+                return result;
+            }
+
+            async function loadFilters() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(getQueryString());
+                try {
+                    const data = await fetchJSON(API_BASE + '/filters?' + params.toString());
+                    renderFilters(data);
+                    if (!initialNameFilterApplied) {
+                        applyNameFilters(data);
+                        initialNameFilterApplied = true;
+                    } else {
+                        applyNameFilters(data);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            function applyNameFilters(filters) {
+                const urlParams = new URLSearchParams(window.location.search);
+                let changed = false;
+
+                if (urlParams.has('category_name')) {
+                    const name = urlParams.get('category_name');
+                    state.category_name = name;
+                    const cat = (filters.categories || []).find(c => c.name.toLowerCase() === name.toLowerCase());
+                    if (cat) {
+                        if (!state.category.includes(cat.id)) {
+                            state.category.push(cat.id);
+                        }
+                        changed = true;
+                    }
+                }
+
+                if (urlParams.has('brand_name')) {
+                    const name = urlParams.get('brand_name');
+                    state.brand_name = name;
+                    const brand = (filters.brands || []).find(b => b.name.toLowerCase() === name.toLowerCase());
+                    if (brand) {
+                        if (!state.brand.includes(brand.id)) {
+                            state.brand.push(brand.id);
+                        }
+                        changed = true;
+                    }
+                }
+
+                if (changed) {
+                    loadProducts();
+                }
+            }
+
+            async function loadProducts() {
+                const qs = getQueryString();
+                try {
+                    const data = await fetchJSON(API_BASE + '/products?' + qs);
+
+                    renderProducts(data.products);
+                    updateURL();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            els.sortBtn.addEventListener('click', () => {
+                els.sortDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!els.sortBtn.contains(e.target) && !els.sortDropdown.contains(e.target)) {
+                    els.sortDropdown.classList.add('hidden');
+                }
+            });
+
+            document.querySelectorAll('.sort-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.sort = btn.dataset.sort;
+                    clearBtnVisible();
+                    loadProducts();
+                });
+            });
+
+            els.toggleFilter.addEventListener('click', () => {
+                els.filterSidebar.classList.toggle('hidden');
+                els.filterText.textContent = els.filterSidebar.classList.contains('hidden') ? 'Show Filters' :
+                    'Hide Filters';
+            });
+
+            document.querySelectorAll('.filter-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    if (e.target.closest('.clear-section-filter')) return;
+                    const targetId = toggle.dataset.target;
+                    const content = document.getElementById(targetId);
+                    const arrow = toggle.querySelector('.filter-arrow');
+                    content.classList.toggle('hidden');
+                    arrow.classList.toggle('rotate-180');
+                });
+            });
+
+            document.querySelectorAll('.clear-section-filter').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const filterType = btn.dataset.filter;
+                    switch (filterType) {
+                        case 'category': state.category = []; break;
+                        case 'gender': state.gender = []; break;
+                        case 'brand': state.brand = []; break;
+                        case 'color': state.color = []; break;
+                        case 'size': state.size = []; break;
+                        case 'price':
+                            state.min_price = null;
+                            state.max_price = null;
+                            break;
+                    }
+                    loadFilters();
+                    loadProducts();
+                });
+            });
+
+            els.clearBtn.addEventListener('click', () => {
+                state.category = [];
+                state.brand = [];
+                state.gender = [];
+                state.color = [];
+                state.size = [];
+                state.min_price = null;
+                state.max_price = null;
+                state.sort = 'featured';
+                loadFilters();
+                loadProducts();
+            });
+
+            window.addEventListener('popstate', () => {
+                loadProducts();
+                loadFilters();
+            });
+
+            initStateFromURL();
+            loadFilters();
+        })();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Back | ZigZag</title>
+
+    <link rel="icon" type="image/png" href="/images/zig_zag_logo.png">
+
+</head>
+
+<body class="bg-white">
+    {% include 'partials/header.html' %}
+    <div class="flex min-h-[calc(100vh-80px)]">
+
+        <div class="w-full flex items-center justify-center px-8 lg:px-16">
+
+            <div class="w-full max-w-md">
+
+                <!-- Logo + Heading -->
+                <div class="flex flex-col items-center text-center mb-6">
+                    <img src="/images/zig_zag_logo.png" alt="ZigZag Logo" class="h-14 w-auto mb-4">
+
+                    <p class="text-4xl font-bold">
+                        Welcome Back
+                    </p>
+
+                    <p class="text-gray-500 mt-2">
+                        Login to continue to your account.
+                    </p>
+                </div>
+
+                <form class="space-y-4" id="loginForm">
+
+                    <!-- Email -->
+                    <div class="relative">
+                        <input type="email" id="email" placeholder=" "
+                            class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 focus:outline-none focus:border-black">
+
+                        <label for="email" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                            peer-placeholder-shown:top-4
+                            peer-placeholder-shown:text-base
+                            peer-focus:-top-2
+                            peer-focus:text-xs
+                            peer-focus:text-black
+                            top-[-8px] text-xs">
+                            Email Address
+                        </label>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="relative">
+                        <input type="password" id="password" placeholder=" "
+                            minlength="8" maxlength="72"
+                            class="peer w-full border border-gray-300 rounded-lg px-4 pr-12 pt-6 pb-2 focus:outline-none focus:border-black">
+
+                        <label for="password" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                            peer-placeholder-shown:top-4
+                            peer-placeholder-shown:text-base
+                            peer-focus:-top-2
+                            peer-focus:text-xs
+                            peer-focus:text-black
+                            top-[-8px] text-xs">
+                            Password
+                        </label>
+
+                        <!-- Toggle Button -->
+                        <button type="button" id="togglePassword"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black">
+
+                            <!-- Open Eye -->
+                            <svg id="eyeOpen" class="w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5
+                                    c4.478 0 8.268 2.943 9.542 7
+                                    -1.274 4.057-5.064 7-9.542 7
+                                    -4.477 0-8.268-2.943-9.542-7z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+
+                            <!-- Closed Eye -->
+                            <svg id="eyeClosed" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M10.584 10.587A2 2 0 0012 14a2 2 0 001.414-.586" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.88 5.09A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7
+                                    a9.97 9.97 0 01-4.293 5.21" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.228 6.228A9.956 9.956 0 002.458 12
+                                    c1.274 4.057 5.064 7 9.542 7
+                                    a9.95 9.95 0 004.242-.949" />
+                            </svg>
+
+                        </button>
+                    </div>
+
+                    <!-- Login error banner -->
+                    <p id="loginError" class="hidden flex items-center gap-2 text-sm text-red-600 rounded-lg px-1 py-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M9.401 3.003c1.155-2.004 4.043-2.004 5.198 0l6.857 11.892c1.155 2.004-.289 4.505-2.599 4.505H5.143c-2.31 0-3.754-2.501-2.599-4.505L9.401 3.003zm2.599 4.247a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8a.75.75 0 01.75-.75zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span id="loginErrorText">Something went wrong.</span>
+                    </p>
+
+                    <!-- Remember + Forgot -->
+                    <div class="flex items-center justify-between text-sm">
+
+                        <label class="flex items-center gap-2 text-gray-600 cursor-pointer">
+                            <input type="checkbox" checked class="accent-black w-4 h-4">
+                            <span>Remember me</span>
+                        </label>
+
+                        <a href="/auth/forgot-password" class="text-black font-medium hover:underline">
+                            Forgot Password?
+                        </a>
+
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" id="loginButton"
+                        class="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                        Login
+                    </button>
+
+                    <!-- Divider -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1 h-px bg-gray-300"></div>
+                        <span class="text-sm text-gray-500">OR</span>
+                        <div class="flex-1 h-px bg-gray-300"></div>
+                    </div>
+
+                    <!-- Google Login -->
+                    <button type="button"
+                        class="w-full border rounded-lg py-3 flex items-center justify-center gap-3 bg-white hover:bg-gray-100 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5">
+                            <path fill="#FFC107"
+                                d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+                            <path fill="#FF3D00"
+                                d="M6.3 14.7l6.6 4.8C14.7 15 18.9 12 24 12c3 0 5.7 1.1 7.8 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                            <path fill="#4CAF50"
+                                d="M24 44c5.2 0 10-2 13.5-5.3l-6.2-5.2C29.3 35 26.8 36 24 36c-5.3 0-9.7-3.3-11.4-8l-6.5 5C9.4 39.5 16.1 44 24 44z" />
+                            <path fill="#1976D2"
+                                d="M43.6 20.5H42V20H24v8h11.3c-1 2.9-3 5.1-5.8 6.5l6.2 5.2C39.2 36.4 44 31 44 24c0-1.3-.1-2.4-.4-3.5z" />
+                        </svg>
+
+                        Continue with Google
+                    </button>
+
+                </form>
+
+                <!-- Signup Link -->
+                <p class="text-center text-sm text-gray-600 mt-6">
+                    Don't have an account?
+                    <a href="/auth/signup" class="font-semibold text-black hover:underline">
+                        Create Account
+                    </a>
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+    {% include 'partials/footer.html' %}
+    <script>
+        // ==========================================================
+        // Password Visibility Toggle
+        // ==========================================================
+        const password = document.getElementById("password");
+        const togglePassword = document.getElementById("togglePassword");
+
+        const eyeOpen = document.getElementById("eyeOpen");
+        const eyeClosed = document.getElementById("eyeClosed");
+
+        togglePassword.addEventListener("click", () => {
+            const showPassword = password.type === "password";
+
+            password.type = showPassword ? "text" : "password";
+
+            eyeOpen.classList.toggle("hidden", !showPassword);
+            eyeClosed.classList.toggle("hidden", showPassword);
+        });
+
+
+        // ==========================================================
+        // Login Form
+        // ==========================================================
+        const loginForm = document.getElementById("loginForm");
+        const email = document.getElementById("email");
+        const loginButton = document.getElementById("loginButton");
+
+        const loginError = document.getElementById("loginError");
+        const loginErrorText = document.getElementById("loginErrorText");
+
+
+        function showLoginError(message) {
+            loginErrorText.textContent = message;
+            loginError.classList.remove("hidden");
+        }
+
+        function hideLoginError() {
+            loginError.classList.add("hidden");
+        }
+
+        [email, password].forEach(field => {
+            field.addEventListener("input", hideLoginError);
+        });
+
+
+        // ==========================================================
+        // Login Submit
+        // ==========================================================
+        loginForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            hideLoginError();
+
+            if (!email.value.trim() || !password.value) {
+                showLoginError("Please enter both email and password.");
+                return;
+            }
+
+            loginButton.disabled = true;
+            loginButton.textContent = "Logging in...";
+
+            try {
+                const response = await fetch("/auth/login", {
+                    method: "POST",
+                    credentials: "include", // Accept/send HttpOnly refresh-token cookie
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: email.value.trim(),
+                        password: password.value
+                    })
+                });
+
+                let data = {};
+
+                try {
+                    data = await response.json();
+                } catch {
+                    // Ignore JSON parsing errors
+                }
+
+                if (!response.ok) {
+                    showLoginError(
+                        data.detail || "Login failed. Please try again."
+                    );
+                    return;
+                }
+
+                // Tell auth.js that login succeeded
+                window.auth.loginSuccess(
+                    data.access_token,
+                    data.user
+                );
+
+                // Redirect
+                window.location.replace("/?toast=login_success");
+
+            } catch (error) {
+                console.error("Login error:", error);
+
+                showLoginError(
+                    "Unable to connect to the server. Please try again."
+                );
+            } finally {
+                loginButton.disabled = false;
+                loginButton.textContent = "Login";
+            }
+        });
+    </script>
+</body>
+
+</html>

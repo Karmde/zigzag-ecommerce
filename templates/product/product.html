@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }}</title>
+    <style>
+        #zoomImage {
+            -webkit-user-drag: none;
+            user-select: none;
+            pointer-events: none;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        #imageContainer:focus {
+            outline: 2px solid #000;
+            outline-offset: 4px;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+    {% include 'partials/header.html' %}
+    <div class="w-[70%] flex items-start rounded-lg mx-auto p-6 py-12">
+
+        <div class="w-[60%] sticky top-6 self-start">
+            <div class="flex gap-4">
+
+                <!-- Thumbnails -->
+                <div id="thumbContainer" class="w-[10%] h-[550px] flex flex-col gap-2 overflow-y-auto">
+                    {% for img in (product.gallery_images if product.gallery_images is defined else []) %}
+                    <div
+                        class="thumb flex-1 rounded-lg overflow-hidden {% if loop.first %}brightness-75{% else %}brightness-100{% endif %}">
+                        <img src="{{ img.url }}" class="w-full h-full object-contain" alt="{{ img.alt_text or '' }}">
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Main Image Wrapper -->
+                <div class="flex-1 relative h-[550px] bg-white">
+
+                    <div id="imageContainer" class="relative h-[550px] rounded-lg overflow-hidden">
+
+                        <img id="mainImage"
+                            src="{{ product.main_image if product.main_image is defined and product.main_image else '' }}"
+                            class="w-full h-full object-contain" alt="Main product image">
+
+                        <div id="lens"
+                            class="absolute hidden w-48 h-48 bg-white/70 border border-white shadow cursor-crosshair pointer-events-none"
+                            aria-hidden="true"></div>
+
+                    </div>
+
+                    <div id="zoomResult"
+                        class="hidden absolute left-full ml-6 top-0 w-[550px] h-[550px] border border-gray-200 bg-white shadow-xl z-50 overflow-hidden rounded-lg"
+                        aria-hidden="true">
+                        <img id="zoomImage" class="absolute top-0 left-0 select-none pointer-events-none" src="" alt=""
+                            style="will-change: transform;">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Right Side (40%) -->
+        <div class="w-[40%] px-6">
+
+            <!-- Product Name -->
+            <p class="text-lg font-semibold text-black">
+                {{ product.name }}
+            </p>
+
+            <!-- Category
+            <p id="productCategory" class="mt-1 text-base font-normal text-gray-400"></p> -->
+
+            <!-- Price -->
+            <div class="mt-2">
+
+                <!-- Current Price, Original Price & Discount -->
+                <div class="flex items-center gap-2 gap-y-5">
+
+                    <!-- Current Price -->
+                    <span id="salePrice" class="text-lg font-semibold text-black">
+                        ₹{{ product.sale_price | inr }}
+                    </span>
+
+                    <!-- Original Price (base price, shown only when discount applied) -->
+                    {% if product.discount_percent_value and product.discount_percent_value > 0 %}
+                    <span id="originalPrice" class="text-sm font-medium text-gray-400 line-through">
+                        ₹{{ product.original_price | inr }}
+                    </span>
+
+                    <!-- Discount -->
+                    <span id="discountTag" class="text-sm font-semibold text-green-600">
+                        {{ "%.0f"|format(product.discount_percent_value) }}% OFF
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <!-- Tax Label -->
+                <p class="mt-1 text-sm font-medium text-gray-400">
+                    Inclusive of all taxes
+                </p>
+
+            </div>
+            <!-- different color Images -->
+            <div class="mt-6">
+                <div id="colorContainer" class="grid grid-cols-4 gap-3.5 gap-x-0.5">
+
+                    {% set current_color_id = (product.colors[0].id if product.colors is defined and product.colors else
+                    none) %}
+                    {% for color in (product.available_colors if product.available_colors is defined else []) %}
+                    <div class="color-swatch w-[75px] aspect-square rounded-lg overflow-hidden flex items-center justify-center {% if color.id == current_color_id %}border border-black{% else %}border border-transparent{% endif %} cursor-pointer"
+                        data-color-id="{{ color.id }}" data-hex="{{ color.hex or '' }}" title="{{ color.name }}">
+                        {% if color.image %}
+                        <img src="{{ color.image }}" alt="{{ color.name }}" class="w-full h-full object-contain">
+                        {% else %}
+                        <span class="w-8 h-8 rounded-full border border-gray-300" data-swatch></span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <!-- Size Section -->
+            <div id="sizeSection" class="mt-8">
+
+                <!-- Heading -->
+                <div id="sizeHeadingRow" class="flex items-center justify-between mb-4">
+                    <p id="sizeHeading" class="text-base font-semibold text-black">
+                        Select Size
+                    </p>
+
+                    <button id="sizeGuideBtn"
+                        class="flex items-center gap-2 text-base font-semibold text-black transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-ruler-dimension-line">
+                            <path d="M10 15v-3" />
+                            <path d="M14 15v-3" />
+                            <path d="M18 15v-3" />
+                            <path d="M2 8V4" />
+                            <path d="M22 6H2" />
+                            <path d="M22 8V4" />
+                            <path d="M6 15v-3" />
+                            <rect x="2" y="12" width="20" height="8" rx="2" />
+                        </svg>
+                        <span>Size Guide</span>
+                    </button>
+                </div>
+
+                <!-- Size Options -->
+                <div id="sizeContainer" class="grid grid-cols-2 gap-3">
+
+                    {% for size in (product.sizes if product.sizes is defined else []) %}
+                    <button
+                        class="size-option h-12 border border-gray-300 rounded-md text-sm font-semibold text-black hover:border-black transition"
+                        data-size-id="{{ size.id }}">
+                        {{ size.name }}
+                    </button>
+                    {% endfor %}
+
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-8 space-y-3">
+
+                    <!-- Add to Cart Error -->
+                    <p id="addToCartError" class="text-red-600 text-sm font-semibold hidden text-center">
+                        Please select a size or storage option.
+                    </p>
+
+                    <!-- Add to Cart -->
+                    <button id="addToCartBtn"
+                        class="w-full h-14 bg-black text-white text-base font-medium rounded-full hover:bg-gray-700 transition">
+                        Add to Cart
+                    </button>
+
+                    <!-- Wishlist -->
+                    <button id="wishlistBtn"
+                        class="w-full h-14 border border-black rounded-full flex items-center justify-center gap-2 text-base font-medium text-black hover:bg-gray-200 transition"
+                        data-variant-id="" data-in-wishlist="false">
+
+                        <span>Wishlist</span>
+
+                        <svg xmlns="http://www.w3.org/2000/svg" id="wishlistHeartIcon" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                        </svg>
+
+                    </button>
+
+                </div>
+
+                <!-- Description -->
+                <div class="mt-6">
+                    <p class="mt-2 text-base leading-7 font-semibold text-black">
+                        {{ product.description or '' }}
+                    </p>
+                </div>
+
+                <!-- Colour / Category / Brand -->
+                <ul class="mt-3 list-disc pl-10 space-y-2">
+                    <li class="text-base font-semibold text-black">
+                        Colour : {{ product.colors | map(attribute='name') | join(' / ') or 'N/A' }}
+                    </li>
+                    <li class="text-base font-semibold text-black">
+                        Category : {% for cat in (product.categories if product.categories is defined else []) %}{{
+                        cat.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    </li>
+                    <li class="text-base font-semibold text-black">
+                        Brand : {{ product.brand_name or '' }}
+                    </li>
+                </ul>
+
+            </div>
+
+            <!-- check delivery available or not -->
+            <div id="deliveryChecker" class="mt-8 max-w-md">
+
+                <p class="text-lg font-semibold">Check delivery date</p>
+
+                <p class="text-base text-gray-400 mt-1 mb-4">
+                    Enter pincode to know exact delivery dates
+                </p>
+
+                <!-- Outer Border -->
+                <div class="flex items-center border border-gray-800 rounded-lg">
+
+                    <div class="relative flex-1">
+                        <input type="text" id="pincode" maxlength="6" placeholder=" "
+                            class="peer w-full bg-transparent px-4 pt-6 pb-2 outline-none">
+
+                        <label for="pincode" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                            peer-placeholder-shown:top-4
+                            peer-placeholder-shown:text-base
+                            peer-focus:-top-2
+                            peer-focus:text-xs
+                            peer-focus:text-black
+                            top-[-8px] text-xs">
+                            Pincode
+                        </label>
+                    </div>
+
+                    <button id="checkBtn"
+                        class="border-l border-gray-300 px-5 text-sm font-semibold hover:text-gray-600">
+                        Check
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- Result -->
+            <div id="deliveryResult" class="mt-4 hidden"></div>
+
+        </div>
+    </div>
+
+    <!-- Recently Viewed Products -->
+    <main class="flex-1 pb-12" id="recentlyViewedSection">
+
+        <div class="flex items-center justify-between pr-12 pl-12 pt-8 pb-8">
+
+            <p class="font-medium text-3xl">
+                Recently Viewed
+            </p>
+
+            <div class="flex gap-3">
+
+                <button id="recentLeftBtn"
+                    class="w-11 h-11 rounded-full border flex items-center justify-center bg-black text-white hover:bg-gray-700 transition">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+
+                    </svg>
+
+                </button>
+
+                <button id="recentRightBtn"
+                    class="w-11 h-11 rounded-full border flex items-center justify-center bg-black text-white hover:bg-gray-700 transition">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+
+                    </svg>
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Products Grid -->
+
+        <div id="recentProducts"
+            class="grid grid-flow-col auto-cols-[calc((100%-4.5rem)/4)] gap-x-6 overflow-x-hidden scroll-smooth pr-12 pl-12">
+
+        </div>
+
+    </main>
+
+
+    <!-- More from Products-->
+    <main class="flex-1 pb-12">
+
+        <div class="flex items-center justify-between pr-12 pl-12 pt-8 pb-8">
+
+            <p class="font-medium text-3xl" id="moreFromTitle">
+                More from Men's Shoes
+            </p>
+
+            <div class="flex gap-3">
+
+                <button id="leftBtn"
+                    class="w-11 h-11 rounded-full border flex items-center justify-center bg-black text-white hover:bg-gray-700 transition">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+
+                    </svg>
+
+                </button>
+
+                <button id="rightBtn"
+                    class="w-11 h-11 rounded-full border flex items-center justify-center bg-black text-white hover:bg-gray-700 transition">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+
+                    </svg>
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Products Grid -->
+
+        <div class="relative">
+
+            <div id="moreProducts"
+                class="grid grid-flow-col auto-cols-[calc((100%-3rem)/4)] gap-x-6 overflow-x-hidden scroll-smooth pr-12 pl-12">
+
+                {% for i in range(6) %}
+                <div onclick="window.location.href='/product'" class="cursor-pointer">
+
+                    <!-- Image Container -->
+                    <div class="relative rounded-lg overflow-hidden aspect-square">
+
+                        <img src="https://rukminim1.flixcart.com/image/1536/1536/ktketu80/mobile/a/i/l/iphone-13-mini-mlk93hn-a-apple-original-imag6vp6x67yypzk.jpeg?q=90"
+                            class="w-full h-full object-contain">
+
+                    </div>
+
+                    <div class="mt-3">
+
+                        <p class="text-[16px] font-semibold">
+                            Air Jordan 1 Low
+                        </p>
+
+                        <p class="text-[16px] text-gray-500 mt-1">
+                            Men's Shoes
+                        </p>
+
+                        <p class="text-[16px] font-medium mt-2">
+                            ₹8,995
+                        </p>
+
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- size gulde modal -->
+    <div id="sizeGuideModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+
+        <!-- Modal -->
+        <div class="w-[850px] max-h-[85vh] bg-white rounded-2xl shadow-xl overflow-hidden">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-8 py-5 border-b">
+
+                <div>
+                    <h2 class="text-2xl font-semibold text-black">
+                        Size Guide
+                    </h2>
+
+                    <p class="mt-1 text-gray-500">
+                        Nike Air Jordan 1 Low Men's Shoes
+                    </p>
+                </div>
+
+                <button id="closeModal" class="text-3xl leading-none text-gray-500 hover:text-black">
+                    &times;
+                </button>
+
+            </div>
+
+            <!-- Unit Toggle -->
+            <div class="flex justify-end px-8 py-4">
+
+                <div class="flex rounded-full bg-gray-100 p-2">
+
+                    <button id="cmBtn" class="px-4 py-2 rounded-full bg-black text-white text-sm">
+                        CM
+                    </button>
+
+                    <button id="inBtn" class="px-4 py-2 rounded-full text-sm">
+                        IN
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- Table -->
+            <div class="px-8 pb-8 overflow-y-auto">
+
+                <table class="w-full border-collapse">
+
+                    <thead>
+
+                        <tr class="border-b">
+
+                            <th class="text-left py-4 font-semibold">
+                                Size
+                            </th>
+
+                            <th class="text-left py-4 font-semibold">
+                                Product Foot Length
+                            </th>
+
+                            <th class="text-left py-4 font-semibold">
+                                US
+                            </th>
+
+                            <th class="text-left py-4 font-semibold">
+                                EU
+                            </th>
+
+                            <th class="text-left py-4 font-semibold">
+                                CM / JP
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 6</td>
+                            <td class="foot">24.0</td>
+                            <td>7</td>
+                            <td>40</td>
+                            <td>25</td>
+                        </tr>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 7</td>
+                            <td class="foot">25.0</td>
+                            <td>8</td>
+                            <td>41</td>
+                            <td>26</td>
+                        </tr>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 8</td>
+                            <td class="foot">26.0</td>
+                            <td>9</td>
+                            <td>42</td>
+                            <td>27</td>
+                        </tr>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 9</td>
+                            <td class="foot">27.0</td>
+                            <td>10</td>
+                            <td>43</td>
+                            <td>28</td>
+                        </tr>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 10</td>
+                            <td class="foot">28.0</td>
+                            <td>11</td>
+                            <td>44</td>
+                            <td>29</td>
+                        </tr>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 11</td>
+                            <td class="foot">29.0</td>
+                            <td>12</td>
+                            <td>45</td>
+                            <td>30</td>
+                        </tr>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 12</td>
+                            <td class="foot">30.0</td>
+                            <td>13</td>
+                            <td>46</td>
+                            <td>31</td>
+                        </tr>
+
+                        <tr class="border-b">
+                            <td class="py-4">UK 13</td>
+                            <td class="foot">31.0</td>
+                            <td>14</td>
+                            <td>47.5</td>
+                            <td>32</td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+    {% include 'partials/footer.html' %}
+    <script>
+        const productData = {{ product | tojson | replace('</', '<\\/') }};
+
+        // Build the category line: Brand + Name + Gender + Category
+        (function () {
+            const el = document.getElementById('productCategory');
+            if (!el || !productData) return;
+            const parts = [];
+            if (productData.brand_name) parts.push(productData.brand_name);
+            if (productData.name) parts.push(productData.name);
+            if (productData.gender_name) {
+                parts.push(`${productData.gender_name}'s`);
+            }
+            const catNames = (productData.categories || []).map(c => c.name).filter(Boolean);
+            if (catNames.length) parts.push(catNames.join(' / '));
+            el.textContent = parts.join(' ');
+        })();
+
+        /* ---------------- storage-aware size + price ---------------- */
+        (function () {
+            if (!productData) return;
+
+            const STORAGE_RE = /(gb|tb)\b/i;
+            const sizes = productData.sizes || [];
+            const isStorage = sizes.some(s => STORAGE_RE.test(s.name || ''));
+
+            // No sizes -> hide only the "Select Size" heading and the
+            // "Size Guide" button. The rest of the section (action buttons)
+            // stays visible.
+            const sizeHeadingRow = document.getElementById('sizeHeadingRow');
+            if (sizeHeadingRow) sizeHeadingRow.style.display = sizes.length ? '' : 'none';
+
+            // Heading: "Select Storage" for storage-type sizes, else "Select Size".
+            const heading = document.getElementById('sizeHeading');
+            if (heading) heading.textContent = isStorage ? 'Select Storage' : 'Select Size';
+
+            const salePriceEl = document.getElementById('salePrice');
+            const originalPriceEl = document.getElementById('originalPrice');
+            const discountTagEl = document.getElementById('discountTag');
+
+            const basePrice = parseFloat(productData.base_price) || 0;
+            const discount = parseFloat(productData.discount_percent_value) || 0;
+            const baseSale = basePrice - (basePrice * discount / 100);
+
+            // price_override per size_id for the *current* color.
+            const currentColorId = (productData.colors && productData.colors[0] && productData.colors[0].id) || null;
+            const sizePrice = {};
+            (productData.variants || []).forEach(v => {
+                if (currentColorId !== null && v.color_id !== currentColorId) return;
+                if (v.size_id == null) return;
+                // a variant with no override falls back to the base sale price
+                sizePrice[v.size_id] = (v.price_override != null)
+                    ? parseFloat(v.price_override)
+                    : baseSale;
+            });
+
+            function inr(value) {
+                const v = Math.round(value);
+                return v.toLocaleString('en-IN');
+            }
+
+            function renderPrice(price, hasOverride) {
+                const original = hasOverride ? price : basePrice;
+                const showDiscount = discount > 0;
+                const sale = showDiscount ? original - (original * discount / 100) : original;
+                if (salePriceEl) salePriceEl.textContent = '₹' + inr(sale);
+                if (originalPriceEl) originalPriceEl.style.display = showDiscount ? '' : 'none';
+                if (originalPriceEl) originalPriceEl.textContent = '₹' + inr(original);
+                if (discountTagEl) discountTagEl.style.display = showDiscount ? '' : 'none';
+            }
+
+            function applySize(sizeId) {
+                const override = (sizeId != null && sizePrice[sizeId] != null) ? sizePrice[sizeId] : null;
+                if (override != null) {
+                    renderPrice(override, true);
+                } else {
+                    renderPrice(baseSale, false);
+                }
+            }
+
+            const sizeContainer = document.getElementById('sizeContainer');
+            if (sizeContainer) {
+                const sizeButtons = sizeContainer.querySelectorAll('.size-option');
+
+                sizeButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        sizeButtons.forEach(b => {
+                            b.classList.remove('border-black');
+                            b.classList.add('border-gray-300');
+                        });
+                        btn.classList.remove('border-gray-300');
+                        btn.classList.add('border-black');
+                        applySize(parseInt(btn.dataset.sizeId, 10));
+                    });
+                });
+
+                if (sizeButtons.length > 0) {
+                    sizeButtons.forEach(b => {
+                        b.classList.remove('border-black');
+                        b.classList.add('border-gray-300');
+                    });
+                } else {
+                    renderPrice(baseSale);
+                }
+            } else {
+                renderPrice(baseSale);
+            }
+        })();
+        /* ---------------- wishlist toggle ---------------- */
+        (function () {
+            if (!productData) return;
+
+            const wishlistBtn = document.getElementById('wishlistBtn');
+            const wishlistIcon = document.getElementById('wishlistHeartIcon');
+            if (!wishlistBtn || !wishlistIcon) return;
+
+            function getSelectedVariantId() {
+                return parseInt(wishlistBtn.dataset.variantId, 10) || null;
+            }
+
+            function findVariant(colorId, sizeId) {
+                return (productData.variants || []).find(
+                    v => v.color_id === colorId && v.size_id === sizeId
+                ) || null;
+            }
+
+            function getSelectedColorId() {
+                const swatch = document.querySelector('.color-swatch.border-black');
+                if (swatch && swatch.dataset.colorId) return parseInt(swatch.dataset.colorId, 10);
+                return (productData.colors && productData.colors[0] && productData.colors[0].id) || null;
+            }
+
+            function setWishlistIcon(inWishlist) {
+                wishlistBtn.dataset.inWishlist = inWishlist ? 'true' : 'false';
+                wishlistIcon.setAttribute('fill', inWishlist ? 'currentColor' : 'none');
+            }
+
+            function checkWishlistState(variantId) {
+                if (!variantId) return;
+                window.auth.authFetch('/wishlist/check?product_variant_id=' + variantId)
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        setWishlistIcon(!!data.in_wishlist);
+                    })
+                    .catch(function () {
+                        setWishlistIcon(false);
+                    });
+            }
+
+            // Update variant ID on wishlist button when size is selected
+            const sizeContainer = document.getElementById('sizeContainer');
+            if (sizeContainer) {
+                sizeContainer.querySelectorAll('.size-option').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        const selectedSizeId = parseInt(btn.dataset.sizeId, 10);
+                        const colorId = getSelectedColorId();
+                        const match = findVariant(colorId, selectedSizeId);
+                        if (match) {
+                            wishlistBtn.dataset.variantId = match.id;
+                            checkWishlistState(match.id);
+                        }
+                    });
+                });
+            }
+
+            const sizes = productData.sizes || [];
+            if (!sizes.length) {
+                const currentColorId = getSelectedColorId();
+                const variant = (productData.variants || []).find(
+                    v => v.color_id === currentColorId && (!v.size_id || v.size_id == null)
+                ) || (productData.variants || []).find(v => !v.size_id || v.size_id == null) || null;
+                if (variant) {
+                    wishlistBtn.dataset.variantId = variant.id;
+                    checkWishlistState(variant.id);
+                }
+            }
+
+            wishlistBtn.addEventListener('click', function () {
+                const variantId = getSelectedVariantId();
+                if (!variantId) {
+                    window.showToast('Select a Size', 'Please choose a size or storage option first.', 'info');
+                    return;
+                }
+
+                var isInWishlist = wishlistBtn.dataset.inWishlist === 'true';
+
+                if (isInWishlist) {
+                    window.auth.authFetch('/wishlist/' + variantId, { method: 'DELETE' })
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            setWishlistIcon(false);
+                            window.showToast('Removed', 'Item removed from wishlist.', 'info');
+                            if (typeof window.updateWishlistBadge === 'function') {
+                                window.updateWishlistBadge();
+                            }
+                        })
+                        .catch(function () {
+                            window.showToast('Error', 'Something went wrong.', 'info');
+                        });
+                } else {
+                    window.auth.authFetch('/wishlist', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ product_variant_id: variantId })
+                    })
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            setWishlistIcon(true);
+                            window.showToast('Added to Wishlist', 'Item added to your wishlist.', 'success');
+                            if (typeof window.updateWishlistBadge === 'function') {
+                                window.updateWishlistBadge();
+                            }
+                        })
+                        .catch(function () {
+                            window.showToast('Error', 'Something went wrong.', 'info');
+                        });
+                }
+            });
+
+            // Initialize wishlist state for first variant of the currently selected color
+            var currentColorId = getSelectedColorId();
+            var colorVariants = (productData.variants || []).filter(function (v) {
+                return v.color_id === currentColorId;
+            });
+            var firstVariant = colorVariants[0] || null;
+            if (firstVariant) {
+                wishlistBtn.dataset.variantId = firstVariant.id;
+                checkWishlistState(firstVariant.id);
+            } else {
+                setWishlistIcon(false);
+            }
+        })();
+
+        /* ---------------- add to cart ---------------- */
+        (function () {
+            if (!productData) return;
+
+            const addBtn = document.getElementById('addToCartBtn');
+            const addError = document.getElementById('addToCartError');
+            if (!addBtn) return;
+
+            function getSelectedVariantId() {
+                const variant_id = addBtn.dataset.variantId;
+                if (variant_id) return parseInt(variant_id, 10);
+                return null;
+            }
+
+            function findVariant(colorId, sizeId) {
+                return (productData.variants || []).find(
+                    v => v.color_id === colorId && v.size_id === sizeId
+                ) || null;
+            }
+
+            function getSelectedColorId() {
+                const swatch = document.querySelector('.color-swatch.border-black');
+                if (swatch && swatch.dataset.colorId) return parseInt(swatch.dataset.colorId, 10);
+                return (productData.colors && productData.colors[0] && productData.colors[0].id) || null;
+            }
+
+            function showError(msg) {
+                if (addError) {
+                    addError.textContent = msg;
+                    addError.classList.remove('hidden');
+                }
+            }
+
+            function hideError() {
+                if (addError) {
+                    addError.classList.add('hidden');
+                }
+            }
+
+            addBtn.addEventListener('click', async () => {
+                hideError();
+
+                const sizes = productData.sizes || [];
+                const currentColorId = getSelectedColorId();
+
+                if (!sizes.length) {
+                    const variant = (productData.variants || []).find(
+                        v => v.color_id === currentColorId && (!v.size_id || v.size_id == null)
+                    ) || (productData.variants || []).find(v => !v.size_id || v.size_id == null) || null;
+
+                    if (!variant) {
+                        showError('No variant available for this product.');
+                        return;
+                    }
+
+                    addBtn.dataset.variantId = variant.id;
+                }
+
+                const variantId = getSelectedVariantId();
+                if (!variantId) {
+                    showError('Select size/storage.');
+                    return;
+                }
+
+                const variant = (productData.variants || []).find(v => v.id === variantId);
+                if (!variant) {
+                    showError('Selected variant not found.');
+                    return;
+                }
+                if (!variant.is_active || variant.stock_quantity <= 0) {
+                    showError('This variant is currently unavailable.');
+                    return;
+                }
+
+                addBtn.disabled = true;
+                addBtn.textContent = 'Adding...';
+
+                try {
+                    const response = await window.auth.authFetch('/cart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            product_variant_id: variantId,
+                            quantity: 1,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.detail || 'Failed to add to cart.');
+                    }
+
+                    window.showToast('Added to Cart', 'Item has been added to your cart.', 'success');
+                    addBtn.textContent = 'Added ✓';
+                    setTimeout(() => { addBtn.textContent = 'Add to Cart'; addBtn.disabled = false; }, 1500);
+                } catch (err) {
+                    window.showToast('Error', err.message || 'Something went wrong.', 'info');
+                    addBtn.disabled = false;
+                    addBtn.textContent = 'Add to Cart';
+                }
+            });
+
+            const sizeContainer = document.getElementById('sizeContainer');
+            if (sizeContainer) {
+                sizeContainer.querySelectorAll('.size-option').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        hideError();
+                        const selectedSizeId = parseInt(btn.dataset.sizeId, 10);
+                        const colorId = getSelectedColorId();
+                        const match = findVariant(colorId, selectedSizeId);
+                        if (match) {
+                            addBtn.dataset.variantId = match.id;
+                        }
+                    });
+                });
+            }
+
+            const sizes = productData.sizes || [];
+            if (!sizes.length) {
+                const currentColorId = getSelectedColorId();
+                const variant = (productData.variants || []).find(
+                    v => v.color_id === currentColorId && (!v.size_id || v.size_id == null)
+                ) || (productData.variants || []).find(v => !v.size_id || v.size_id == null) || null;
+                if (variant) {
+                    addBtn.dataset.variantId = variant.id;
+                }
+            }
+        })();
+
+        const mainImage = document.getElementById('mainImage');
+        const thumbContainer = document.getElementById('thumbContainer');
+        const colorContainer = document.getElementById('colorContainer');
+
+        let activeImages = (productData.gallery_images || []).map(i => i.url);
+
+        function renderThumbnails(images) {
+            activeImages = images;
+            thumbContainer.innerHTML = '';
+            if (!images.length) return;
+            images.forEach((url, idx) => {
+                const div = document.createElement('div');
+                div.className = 'thumb flex-1 rounded-lg overflow-hidden ' + (idx === 0 ? 'brightness-75' : 'brightness-100');
+                div.innerHTML = `<img src="${url}" class="w-full h-full object-cover" alt="">`;
+                thumbContainer.appendChild(div);
+            });
+            bindThumbnails();
+
+            // Apply hex background to color swatches that have no image.
+            document.querySelectorAll('.color-swatch[data-hex]').forEach((el) => {
+                const sw = el.querySelector('[data-swatch]');
+                const hex = el.getAttribute('data-hex');
+                if (sw && hex) sw.style.backgroundColor = hex;
+            });
+
+            mainImage.src = images[0];
+            if (window.productImageZoom) window.productImageZoom.changeImage(images[0]);
+        }
+
+        function bindThumbnails() {
+            const thumbs = thumbContainer.querySelectorAll('.thumb');
+            thumbs.forEach((thumb) => {
+                thumb.addEventListener('mouseenter', () => {
+                    const imgSrc = thumb.querySelector('img').src;
+                    mainImage.src = imgSrc;
+                    mainImage.dataset.zoom = imgSrc;
+                    if (window.productImageZoom) window.productImageZoom.changeImage(imgSrc);
+                    thumbs.forEach(t => {
+                        t.classList.remove('brightness-75');
+                        t.classList.add('brightness-100');
+                    });
+                    thumb.classList.remove('brightness-100');
+                    thumb.classList.add('brightness-75');
+                });
+            });
+        }
+
+        bindThumbnails();
+
+        // Color swatches -> reload page for that color (server returns only that color's info + images)
+        if (colorContainer) {
+            const swatches = colorContainer.querySelectorAll('.color-swatch');
+            swatches.forEach((swatch) => {
+                swatch.addEventListener('click', () => {
+                    const colorId = swatch.dataset.colorId;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('color_id', colorId);
+                    window.location.href = url.toString();
+                });
+            });
+        }
+
+        // size guide modal open js
+        const modal = document.getElementById("sizeGuideModal");
+        const openBtn = document.getElementById("sizeGuideBtn");
+        const closeBtn = document.getElementById("closeModal");
+        const Mainheader = document.getElementById("main-header");
+
+        openBtn.onclick = () => {
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+
+            if (Mainheader) {
+                Mainheader.classList.add("hidden");
+            }
+        };
+
+        closeBtn.onclick = () => {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+
+            if (Mainheader) {
+                Mainheader.classList.remove("hidden");
+            }
+        };
+
+        // Close when clicking outside the modal
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+
+                // Show header
+                Mainheader.classList.remove("hidden");
+            }
+        };
+
+        // in to cm converter
+        const cmBtn = document.getElementById("cmBtn");
+        const inBtn = document.getElementById("inBtn");
+
+        const footCells = document.querySelectorAll(".foot");
+
+        const cmValues = [24, 25, 26, 27, 28, 29, 30, 31];
+        const inValues = [9.45, 9.84, 10.24, 10.63, 11.02, 11.42, 11.81, 12.20];
+
+        cmBtn.onclick = () => {
+
+            cmBtn.classList.add("bg-black", "text-white");
+            inBtn.classList.remove("bg-black", "text-white");
+
+            footCells.forEach((cell, index) => {
+                cell.textContent = cmValues[index] + " cm";
+            });
+
+        };
+
+        inBtn.onclick = () => {
+
+            inBtn.classList.add("bg-black", "text-white");
+            cmBtn.classList.remove("bg-black", "text-white");
+
+            footCells.forEach((cell, index) => {
+                cell.textContent = inValues[index] + " in";
+            });
+
+        };
+
+        // check delivery availab
+        const checker = document.getElementById("deliveryChecker");
+        const btn = document.getElementById("checkBtn");
+        const result = document.getElementById("deliveryResult");
+        const pincodeInput = document.getElementById("pincode");
+
+        btn.addEventListener("click", async () => {
+
+            const pin = pincodeInput.value.trim();
+
+            // Validate PIN
+            if (pin.length !== 6 || isNaN(pin)) {
+                result.className = "mt-4 text-red-600 font-medium";
+                result.innerHTML = "Please enter a valid 6-digit PIN code.";
+                result.classList.remove("hidden");
+                return;
+            }
+
+            // Loading State
+            result.className = "mt-4 text-gray-500";
+            result.innerHTML = "Checking...";
+            result.classList.remove("hidden");
+
+            try {
+
+                const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                const data = await response.json();
+
+                if (
+                    data[0].Status === "Success" &&
+                    data[0].PostOffice &&
+                    data[0].PostOffice.length > 0
+                ) {
+
+                    const office = data[0].PostOffice[0];
+
+                    // Delivery Date (+5 Days)
+                    const deliveryDate = new Date();
+                    deliveryDate.setDate(deliveryDate.getDate() + 5);
+
+                    const formattedDate = deliveryDate.toLocaleDateString("en-IN", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long"
+                    });
+
+                    // Hide PIN Checker
+                    checker.classList.add("hidden");
+
+                    // Show Success Card
+                    result.className = "mt-4 rounded-xl p-4";
+
+                    result.innerHTML = `
+                <div class="flex justify-between items-start">
+
+                    <div>
+                        <p class="font-semibold text-green-700">
+                            Delivery Available
+                        </p>
+
+                        <p class="text-gray-700 mt-1">
+                            Get it by <span class="font-semibold">${formattedDate}</span>
+                        </p>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            ${office.District}, ${office.State}
+                        </p>
+                    </div>
+
+                    <button
+                        id="changePin"
+                        class="text-sm font-semibold hover:text-gray-600 pt-8">
+                        Change
+                    </button>
+
+                </div>
+            `;
+
+                    // Change Button
+                    document.getElementById("changePin").addEventListener("click", () => {
+
+                        checker.classList.remove("hidden");
+                        result.classList.add("hidden");
+
+                        pincodeInput.value = "";
+                        pincodeInput.focus();
+
+                    });
+
+                } else {
+
+                    result.className = "mt-4 rounded-xl p-4";
+
+                    result.innerHTML = `
+                <p class="font-semibold text-red-700">
+                    Delivery Unavailable
+                </p>
+
+                <p class="text-gray-600 mt-1">
+                    Sorry, we don't deliver to this PIN code.
+                </p>
+            `;
+                }
+
+            } catch (error) {
+
+                result.className = "mt-4 rounded-xl p-4";
+
+                result.innerHTML = `
+            <p class="text-red-600">
+                Something went wrong. Please try again.
+            </p>
+        `;
+
+            }
+
+        });
+
+
+        const MoreProductContainer = document.getElementById("moreProducts");
+
+        const card = MoreProductContainer.children[0];
+
+        function scrollAmount() {
+
+            const style = getComputedStyle(MoreProductContainer);
+
+            const gap = parseFloat(style.columnGap || style.gap);
+
+            return card.offsetWidth + gap;
+
+        }
+
+        document.getElementById("rightBtn").addEventListener("click", () => {
+
+            MoreProductContainer.scrollBy({
+                left: scrollAmount(),
+                behavior: "smooth"
+            });
+
+        });
+
+        document.getElementById("leftBtn").addEventListener("click", () => {
+
+            MoreProductContainer.scrollBy({
+                left: -scrollAmount(),
+                behavior: "smooth"
+            });
+
+        });
+
+        // recently viewed products
+        (async function () {
+            const recentSection = document.getElementById('recentlyViewedSection');
+            const recentContainer = document.getElementById('recentProducts');
+            if (!recentSection || !recentContainer) return;
+
+            const productId = productData && productData.id ? productData.id : null;
+            if (!productId) {
+                recentSection.classList.add('hidden');
+                return;
+            }
+
+            try {
+                await window.auth.authFetch('/products/' + productId + '/viewed', { method: 'POST' });
+            } catch (e) {
+                console.warn('[recently viewed] /viewed failed', e);
+            }
+
+            let items = [];
+            try {
+                const res = await window.auth.authFetch('/products/recently-viewed');
+                if (res.ok) {
+                    items = await res.json();
+                } else {
+                    console.warn('[recently viewed] list status', res.status);
+                }
+            } catch (e) {
+                console.warn('[recently viewed] list failed', e);
+                items = [];
+            }
+
+            if (!items.length) {
+                recentSection.classList.add('hidden');
+                return;
+            }
+
+            const currentId = productData && productData.id ? productData.id : null;
+            const filtered = currentId != null ? items.filter(function (p) { return p.id !== currentId; }) : items;
+
+            if (!filtered.length) {
+                recentSection.classList.add('hidden');
+                return;
+            }
+
+            recentContainer.innerHTML = '';
+
+            filtered.forEach(function (p) {
+                const base = parseFloat(p.base_price) || 0;
+                const disc = parseFloat(p.discount_percent) || 0;
+                const salePrice = Math.round(base - (base * disc / 100));
+
+                const card = document.createElement('div');
+                card.className = 'cursor-pointer';
+                card.onclick = function () {
+                    window.location.href = '/product?id=' + p.id;
+                };
+
+                const img = document.createElement('div');
+                img.className = 'relative rounded-lg overflow-hidden aspect-square';
+                const imgEl = document.createElement('img');
+                imgEl.alt = p.name || 'Product';
+                imgEl.className = 'w-full h-full object-contain';
+                if (p.image_url) imgEl.src = p.image_url;
+                img.appendChild(imgEl);
+
+                const info = document.createElement('div');
+                info.className = 'mt-2';
+
+                const name = document.createElement('p');
+                name.className = 'text-[16px] font-semibold text-black';
+                name.textContent = p.name;
+
+                const cat = document.createElement('p');
+                cat.className = 'text-[16px] text-gray-500 mt-1';
+                cat.textContent = p.category_name || '';
+
+                const priceRow = document.createElement('div');
+                priceRow.className = 'flex items-center gap-2 mt-2 flex-wrap';
+
+                const saleEl = document.createElement('span');
+                saleEl.className = 'text-[16px] font-medium text-black';
+                saleEl.textContent = '₹' + salePrice.toLocaleString('en-IN');
+
+                priceRow.appendChild(saleEl);
+
+                if (disc > 0) {
+                    const origEl = document.createElement('span');
+                    origEl.className = 'text-sm font-medium text-gray-400 line-through';
+                    origEl.textContent = '₹' + Math.round(base).toLocaleString('en-IN');
+                    priceRow.appendChild(origEl);
+
+                    const discEl = document.createElement('span');
+                    discEl.className = 'text-sm font-semibold text-green-600';
+                    discEl.textContent = Math.round(disc) + '% OFF';
+                    priceRow.appendChild(discEl);
+                }
+
+                info.appendChild(name);
+                info.appendChild(cat);
+                info.appendChild(priceRow);
+
+                card.appendChild(img);
+                card.appendChild(info);
+                recentContainer.appendChild(card);
+            });
+
+            const recentCard = recentContainer.children[0];
+
+            function recentScrollAmount() {
+                const gap = parseFloat(getComputedStyle(recentContainer).columnGap);
+                return recentCard.offsetWidth + gap;
+            }
+
+            document.getElementById('recentRightBtn').addEventListener('click', () => {
+                recentContainer.scrollBy({
+                    left: recentScrollAmount(),
+                    behavior: 'smooth'
+                });
+            });
+
+            document.getElementById('recentLeftBtn').addEventListener('click', () => {
+                recentContainer.scrollBy({
+                    left: -recentScrollAmount(),
+                    behavior: 'smooth'
+                });
+            });
+        })();
+
+        // related products
+        (async function () {
+            const moreTitle = document.getElementById('moreFromTitle');
+            const moreSection = moreTitle ? moreTitle.closest('main') : null;
+            if (!moreSection || !productData) return;
+            const moreContainer = document.getElementById('moreProducts');
+            if (!moreContainer) return;
+
+            const categories = (productData.categories || []);
+            const catName = categories.length ? categories[0].name : '';
+            if (catName) {
+                moreTitle.textContent = 'More from ' + catName;
+            }
+
+            let items = [];
+            try {
+                const res = await window.auth.authFetch('/products/related?product_id=' + productData.id + '&limit=12');
+                if (res.ok) {
+                    items = await res.json();
+                } else {
+                    console.warn('[related products] status', res.status, await res.text());
+                }
+            } catch (e) {
+                console.warn('[related products] fetch failed', e);
+                items = [];
+            }
+
+            moreContainer.innerHTML = '';
+
+            if (!items.length) {
+                moreSection.classList.add('hidden');
+                return;
+            }
+
+            items.forEach(function (p) {
+                const base = parseFloat(p.base_price) || 0;
+                const disc = parseFloat(p.discount_percent) || 0;
+                const salePrice = Math.round(base - (base * disc / 100));
+
+                const card = document.createElement('div');
+                card.className = 'cursor-pointer';
+                card.onclick = function () {
+                    window.location.href = '/product?id=' + p.id;
+                };
+
+                const img = document.createElement('div');
+                img.className = 'relative rounded-lg overflow-hidden aspect-square';
+                const imgEl = document.createElement('img');
+                imgEl.alt = p.name || 'Product';
+                imgEl.className = 'w-full h-full object-contain';
+                if (p.image_url) imgEl.src = p.image_url;
+                img.appendChild(imgEl);
+
+                const info = document.createElement('div');
+                info.className = 'mt-3';
+
+                const name = document.createElement('p');
+                name.className = 'text-[16px] font-semibold';
+                name.textContent = p.name;
+
+                const cat = document.createElement('p');
+                cat.className = 'text-[16px] text-gray-500 mt-1';
+                cat.textContent = p.category_name || '';
+
+                const priceRow = document.createElement('div');
+                priceRow.className = 'flex items-center gap-2 mt-2 flex-wrap';
+
+                const saleEl = document.createElement('span');
+                saleEl.className = 'text-[16px] font-medium';
+                saleEl.textContent = '₹' + salePrice.toLocaleString('en-IN');
+
+                priceRow.appendChild(saleEl);
+
+                if (disc > 0) {
+                    const origEl = document.createElement('span');
+                    origEl.className = 'text-sm font-medium text-gray-400 line-through';
+                    origEl.textContent = '₹' + Math.round(base).toLocaleString('en-IN');
+                    priceRow.appendChild(origEl);
+
+                    const discEl = document.createElement('span');
+                    discEl.className = 'text-sm font-semibold text-green-600';
+                    discEl.textContent = Math.round(disc) + '% OFF';
+                    priceRow.appendChild(discEl);
+                }
+
+                info.appendChild(name);
+                info.appendChild(cat);
+                info.appendChild(priceRow);
+
+                card.appendChild(img);
+                card.appendChild(info);
+                moreContainer.appendChild(card);
+            });
+
+            const moreCard = moreContainer.children[0];
+
+            function moreScrollAmount() {
+                const gap = parseFloat(getComputedStyle(moreContainer).columnGap);
+                return moreCard.offsetWidth + gap;
+            }
+
+            document.getElementById('rightBtn').addEventListener('click', () => {
+                moreContainer.scrollBy({
+                    left: moreScrollAmount(),
+                    behavior: 'smooth'
+                });
+            });
+
+            document.getElementById('leftBtn').addEventListener('click', () => {
+                moreContainer.scrollBy({
+                    left: -moreScrollAmount(),
+                    behavior: 'smooth'
+                });
+            });
+        })();
+
+
+    </script>
+    <script>
+        class ProductImageZoom {
+            constructor(options = {}) {
+                this.container = options.container || document.getElementById('imageContainer');
+                this.image = options.image || document.getElementById('mainImage');
+                this.lens = options.lens || document.getElementById('lens');
+                this.zoomResult = options.zoomResult || document.getElementById('zoomResult');
+                this.zoomImg = options.zoomImage || document.getElementById('zoomImage');
+
+                if (!this.container || !this.image || !this.lens || !this.zoomResult || !this.zoomImg) {
+                    throw new Error(
+                        'ProductImageZoom requires container, image, lens, zoomResult, and zoomImage elements.'
+                    );
+                }
+
+                this.zoomFactor = this._positiveNumber(options.zoomFactor, 2.6);
+                this.lensWidth = this._positiveNumber(options.lensWidth, 192);
+                this.lensHeight = this._positiveNumber(options.lensHeight, 192);
+                this.zoomWidth = this._positiveNumber(options.zoomWidth, 550);
+                this.zoomHeight = this._positiveNumber(options.zoomHeight, 550);
+                this.hiddenClass = options.hiddenClass || 'hidden';
+
+                this.currentSrc = options.src || this._getMainImageSource();
+                this._active = false;
+                this._raf = 0;
+                this._lastPoint = null;
+
+                this._handlers = {
+                    mouseenter: (event) => this._showAt(event),
+                    mousemove: (event) => this._moveTo(event),
+                    mouseleave: () => this._hide(),
+                    touchstart: (event) => this._showAt(event.touches[0]),
+                    touchmove: (event) => {
+                        if (event.touches.length) this._moveTo(event.touches[0]);
+                    },
+                    touchend: () => this._hide(),
+                    touchcancel: () => this._hide(),
+                    imageLoad: () => this._onImageLoad(),
+                    resize: () => this._renderLastPoint()
+                };
+
+                this._prepareElements();
+                this._bindEvents();
+
+                if (this.currentSrc) this._setZoomSource(this.currentSrc);
+            }
+
+            _positiveNumber(value, fallback) {
+                const number = Number(value);
+                return Number.isFinite(number) && number > 0 ? number : fallback;
+            }
+
+            _prepareElements() {
+                if (getComputedStyle(this.container).position === 'static') {
+                    this.container.style.position = 'relative';
+                }
+
+                Object.assign(this.lens.style, {
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    pointerEvents: 'none',
+                    willChange: 'transform'
+                });
+
+                Object.assign(this.zoomResult.style, {
+                    overflow: 'hidden'
+                });
+
+                Object.assign(this.zoomImg.style, {
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    objectFit: 'fill',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    willChange: 'transform'
+                });
+
+                this.zoomImg.draggable = false;
+                this._setVisible(false);
+            }
+
+            _bindEvents() {
+                this.container.addEventListener('mouseenter', this._handlers.mouseenter);
+                this.container.addEventListener('mousemove', this._handlers.mousemove);
+                this.container.addEventListener('mouseleave', this._handlers.mouseleave);
+                this.container.addEventListener('touchstart', this._handlers.touchstart, { passive: true });
+                this.container.addEventListener('touchmove', this._handlers.touchmove, { passive: true });
+                this.container.addEventListener('touchend', this._handlers.touchend);
+                this.container.addEventListener('touchcancel', this._handlers.touchcancel);
+                this.image.addEventListener('load', this._handlers.imageLoad);
+                window.addEventListener('resize', this._handlers.resize);
+            }
+
+            _getMainImageSource() {
+                return this.image.currentSrc || this.image.dataset.zoom || this.image.src || '';
+            }
+
+            _setZoomSource(src) {
+                if (!src) return;
+                this.currentSrc = src;
+                if (this.zoomImg.src !== src) this.zoomImg.src = src;
+            }
+
+            _onImageLoad() {
+                this._setZoomSource(this._getMainImageSource());
+                this._renderLastPoint();
+            }
+
+            _setVisible(visible) {
+                this.lens.classList.toggle(this.hiddenClass, !visible);
+                this.zoomResult.classList.toggle(this.hiddenClass, !visible);
+                this.lens.hidden = !visible;
+                this.zoomResult.hidden = !visible;
+                this.lens.setAttribute('aria-hidden', String(!visible));
+                this.zoomResult.setAttribute('aria-hidden', String(!visible));
+            }
+
+            _showAt(event) {
+                if (!event || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) return;
+
+                this._active = true;
+                this._setZoomSource(this._getMainImageSource() || this.currentSrc);
+                this._setVisible(true);
+                this._queueRender({ clientX: event.clientX, clientY: event.clientY });
+            }
+
+            _moveTo(event) {
+                if (!this._active || !event) return;
+                this._queueRender({ clientX: event.clientX, clientY: event.clientY });
+            }
+
+            _hide() {
+                this._active = false;
+                this._lastPoint = null;
+                if (this._raf) {
+                    cancelAnimationFrame(this._raf);
+                    this._raf = 0;
+                }
+                this._setVisible(false);
+            }
+
+            _queueRender(point) {
+                this._lastPoint = point;
+                if (this._raf) return;
+
+                this._raf = requestAnimationFrame(() => {
+                    this._raf = 0;
+                    this._renderLastPoint();
+                });
+            }
+
+            _renderLastPoint() {
+                if (!this._active || !this._lastPoint) return;
+
+                const imageRect = this._getImageDisplayRect();
+                if (!imageRect) return;
+
+                const containerRect = this.container.getBoundingClientRect();
+                const point = {
+                    x: this._lastPoint.clientX - containerRect.left,
+                    y: this._lastPoint.clientY - containerRect.top
+                };
+
+                const lens = this._positionLens(point, imageRect);
+                this._positionZoomImage(lens, imageRect);
+            }
+
+            _getImageDisplayRect() {
+                const containerRect = this.container.getBoundingClientRect();
+                const elementRect = this.image.getBoundingClientRect();
+                const elementWidth = elementRect.width;
+                const elementHeight = elementRect.height;
+                const naturalWidth = this.image.naturalWidth;
+                const naturalHeight = this.image.naturalHeight;
+
+                if (!elementWidth || !elementHeight || !naturalWidth || !naturalHeight) return null;
+
+                const style = getComputedStyle(this.image);
+                const fit = style.objectFit || 'fill';
+                let width = elementWidth;
+                let height = elementHeight;
+
+                if (fit !== 'fill') {
+                    const containScale = Math.min(elementWidth / naturalWidth, elementHeight / naturalHeight);
+                    const coverScale = Math.max(elementWidth / naturalWidth, elementHeight / naturalHeight);
+                    let scale = containScale;
+
+                    if (fit === 'cover') scale = coverScale;
+                    if (fit === 'none') scale = 1;
+                    if (fit === 'scale-down') scale = Math.min(1, containScale);
+
+                    width = naturalWidth * scale;
+                    height = naturalHeight * scale;
+                }
+
+                const position = this._getObjectPosition(style.objectPosition);
+                const x = elementRect.left - containerRect.left + (elementWidth - width) * position.x;
+                const y = elementRect.top - containerRect.top + (elementHeight - height) * position.y;
+
+                const visibleLeft = Math.max(0, x);
+                const visibleTop = Math.max(0, y);
+                const visibleRight = Math.min(containerRect.width, x + width);
+                const visibleBottom = Math.min(containerRect.height, y + height);
+
+                if (visibleRight <= visibleLeft || visibleBottom <= visibleTop) return null;
+
+                return {
+                    x,
+                    y,
+                    width,
+                    height,
+                    visibleLeft,
+                    visibleTop,
+                    visibleWidth: visibleRight - visibleLeft,
+                    visibleHeight: visibleBottom - visibleTop
+                };
+            }
+
+            _getObjectPosition(value) {
+                const tokens = String(value || '50% 50%').trim().split(/\s+/);
+                let x = tokens[0] || '50%';
+                let y = tokens[1] || '50%';
+
+                if (tokens.length === 1 && /^(top|bottom)$/i.test(x)) {
+                    y = x;
+                    x = '50%';
+                }
+
+                return {
+                    x: this._positionFraction(x, 'x'),
+                    y: this._positionFraction(y, 'y')
+                };
+            }
+
+            _positionFraction(token, axis) {
+                const value = String(token).toLowerCase();
+                const start = axis === 'x' ? 'left' : 'top';
+                const end = axis === 'x' ? 'right' : 'bottom';
+
+                if (value === start) return 0;
+                if (value === end) return 1;
+                if (value === 'center') return 0.5;
+                if (value.endsWith('%')) {
+                    const percentage = Number.parseFloat(value);
+                    return Number.isFinite(percentage) ? percentage / 100 : 0.5;
+                }
+
+                return 0.5;
+            }
+
+            _positionLens(point, imageRect) {
+                const width = Math.min(this.lensWidth, imageRect.visibleWidth);
+                const height = Math.min(this.lensHeight, imageRect.visibleHeight);
+                const minX = imageRect.visibleLeft;
+                const minY = imageRect.visibleTop;
+                const maxX = imageRect.visibleLeft + imageRect.visibleWidth - width;
+                const maxY = imageRect.visibleTop + imageRect.visibleHeight - height;
+                const x = this._clamp(point.x - width / 2, minX, maxX);
+                const y = this._clamp(point.y - height / 2, minY, maxY);
+
+                this.lens.style.width = `${width}px`;
+                this.lens.style.height = `${height}px`;
+                this.lens.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+                return { x, y, width, height };
+            }
+
+            _positionZoomImage(lens, imageRect) {
+                const panelRect = this.zoomResult.getBoundingClientRect();
+                const panelWidth = panelRect.width || this.zoomWidth;
+                const panelHeight = panelRect.height || this.zoomHeight;
+                const scaledWidth = imageRect.width * this.zoomFactor;
+                const scaledHeight = imageRect.height * this.zoomFactor;
+                const focusX = (lens.x + lens.width / 2 - imageRect.x) / imageRect.width;
+                const focusY = (lens.y + lens.height / 2 - imageRect.y) / imageRect.height;
+                const x = panelWidth / 2 - focusX * scaledWidth;
+                const y = panelHeight / 2 - focusY * scaledHeight;
+
+                this.zoomImg.style.width = `${scaledWidth}px`;
+                this.zoomImg.style.height = `${scaledHeight}px`;
+                this.zoomImg.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            }
+
+            _clamp(value, min, max) {
+                return Math.max(min, Math.min(value, max));
+            }
+
+            /**
+             * Changes the source used by the magnified panel. The caller may update
+             * the main image separately, as the existing thumbnail code already does.
+             */
+            changeImage(newSrc) {
+                const src = String(newSrc || '').trim();
+                if (!src) return;
+
+                this._setZoomSource(src);
+                this._renderLastPoint();
+            }
+
+            destroy() {
+                this._hide();
+                this.container.removeEventListener('mouseenter', this._handlers.mouseenter);
+                this.container.removeEventListener('mousemove', this._handlers.mousemove);
+                this.container.removeEventListener('mouseleave', this._handlers.mouseleave);
+                this.container.removeEventListener('touchstart', this._handlers.touchstart);
+                this.container.removeEventListener('touchmove', this._handlers.touchmove);
+                this.container.removeEventListener('touchend', this._handlers.touchend);
+                this.container.removeEventListener('touchcancel', this._handlers.touchcancel);
+                this.image.removeEventListener('load', this._handlers.imageLoad);
+                window.removeEventListener('resize', this._handlers.resize);
+            }
+        }
+
+        // Expose the class for a non-module script tag.
+        window.ProductImageZoom = ProductImageZoom;
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainImage = document.getElementById('mainImage');
+            const initialSrc = mainImage.src || mainImage.dataset.zoom || '';
+
+            window.productImageZoom = new ProductImageZoom({
+                container: document.getElementById('imageContainer'),
+                image: document.getElementById('mainImage'),
+                lens: document.getElementById('lens'),
+                zoomResult: document.getElementById('zoomResult'),
+                zoomImage: document.getElementById('zoomImage'),
+                zoomFactor: 2.6,
+                lensWidth: 192,
+                lensHeight: 192
+            });
+
+            const img = new Image();
+            img.src = initialSrc;
+            if (img.complete) {
+                window.productImageZoom.changeImage(initialSrc);
+            } else {
+                img.onload = () => window.productImageZoom.changeImage(initialSrc);
+            }
+        });
+    </script>
+</body>
+
+</html>

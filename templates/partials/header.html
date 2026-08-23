@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f7f5;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .display-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        code,
+        pre,
+        .mono-font {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* TOP BAR */
+        #top-bar {
+            background: #111;
+            color: #fff;
+            font-size: 11.5px;
+            letter-spacing: 0.04em;
+        }
+
+        #top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        #top-bar a:hover {
+            color: #fff;
+        }
+
+        /* Ticker animation */
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .marquee-inner {
+            display: flex;
+            animation: marquee 28s linear infinite;
+            white-space: nowrap;
+        }
+
+        .marquee-inner:hover {
+            animation-play-state: paused;
+        }
+
+        .marquee-sep {
+            color: #555;
+            margin: 0 20px;
+        }
+
+        /* HEADER */
+        #main-header {
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 80px;
+        }
+
+        #main-header.scrolled-down {
+            transform: translateY(-100%);
+        }
+
+        #main-header.scrolled-up {
+            transform: translateY(0);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
+        }
+
+        body {
+            padding-top: 80px;
+        }
+
+        /* NAV LINKS */
+        .nav-link {
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: .03em;
+            color: #111;
+            cursor: pointer;
+            position: relative;
+            padding: 8px 0;
+            text-transform: uppercase;
+            transition: color .2s;
+            white-space: nowrap;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 1.5px;
+            background: #111;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .25s ease;
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            transform: scaleX(1);
+        }
+
+        .nav-link.sale-link {
+            color: #E8A020;
+        }
+
+        .nav-link.sale-link::after {
+            background: #E8A020;
+        }
+
+        /* ICON BUTTONS */
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background .2s;
+            position: relative;
+            color: #111;
+        }
+
+        .icon-btn:hover {
+            background: #f0f0f0;
+        }
+
+        /* Guarantees login-btn / profile-btn toggle works even if the
+           Tailwind CDN stylesheet loads before this block. */
+        .icon-btn.hidden,
+        #login-btn.hidden,
+        #profile-wrapper.hidden {
+            display: none !important;
+        }
+
+        /* LOGIN BUTTON */
+        .login-text-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+
+            min-width: 100px;
+            height: 40px;
+            padding: 0 24px;
+
+            background: #111;
+            color: #fff;
+
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+
+            border: none;
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            transition: all 0.25s ease;
+        }
+
+        .login-text-btn:hover {
+            background: #2b2b2b;
+        }
+
+        /* CART BADGE */
+        .cart-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            background: #111;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        /* SEARCH PANEL */
+        #search-panel {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            background: rgba(255, 255, 255, .98);
+            backdrop-filter: blur(8px);
+
+            max-height: 0;
+            overflow: hidden;
+
+            opacity: 0;
+            visibility: hidden;
+
+            transition: max-height .3s ease, opacity .3s ease;
+        }
+
+        #search-panel.open {
+            max-height: 50vh;
+            opacity: 1;
+            visibility: visible;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        #search-panel-content {
+            padding: 32px 24px;
+            max-width: 680px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        #search-input {
+            width: 100%;
+            border: none;
+            border-bottom: 2px solid #111;
+            font-size: 20px;
+            font-weight: 400;
+            padding: 12px 0;
+            outline: none;
+            letter-spacing: -.01em;
+            color: #111;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #search-input::placeholder {
+            color: #bbb;
+        }
+
+        /* MEGA MENU */
+        .mega-wrapper {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-top: 1px solid #e8e8e8;
+            border-bottom: 1px solid #e8e8e8;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, .1);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-8px);
+            transition: opacity .22s ease, transform .22s ease;
+            z-index: 998;
+        }
+
+        .mega-wrapper.open {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+
+        .mega-col-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #111;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .mega-link {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            padding: 6px 0;
+            text-decoration: none;
+            transition: color .15s, padding-left .15s;
+            cursor: pointer;
+        }
+
+        .mega-link:hover {
+            color: #111;
+            padding-left: 4px;
+        }
+
+        .featured-banner {
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            grid-column: 5 / 7;
+            margin-left: auto;
+        }
+
+        .featured-banner img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            transition: transform .4s ease;
+            display: block;
+        }
+
+        .featured-banner:hover img {
+            transform: scale(1.04);
+        }
+
+        .featured-banner-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, .6));
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 20px 12px 10px;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .trending-tag {
+            display: inline-block;
+            border: 1px solid #e0e0e0;
+            border-radius: 2px;
+            font-size: 11px;
+            padding: 4px 12px;
+            color: #555;
+            cursor: pointer;
+            transition: all .15s;
+            margin: 3px 2px;
+            text-decoration: none;
+        }
+
+        .trending-tag:hover {
+            border-color: #111;
+            color: #111;
+        }
+
+        /* PROFILE DROPDOWN */
+        #profile-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            width: 240px;
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .1);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: opacity .2s, transform .2s;
+            z-index: 2001;
+            overflow: hidden;
+        }
+
+        #profile-dropdown.open {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+
+        .profile-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .profile-item:hover {
+            background: #f8f8f8;
+        }
+
+        .profile-item.danger {
+            color: #c0021b;
+        }
+
+        .profile-item svg {
+            flex-shrink: 0;
+        }
+
+
+
+        /* DEMO CONTENT */
+        .demo-banner {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            color: #fff;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .demo-badge {
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .demo-title {
+            font-size: clamp(42px, 8vw, 96px);
+            font-weight: 600;
+            letter-spacing: -.02em;
+            line-height: 1;
+            margin-bottom: 24px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .demo-sub {
+            font-size: 16px;
+            color: #888;
+            max-width: 440px;
+            line-height: 1.7;
+            margin-bottom: 36px;
+            font-weight: 300;
+        }
+
+        .demo-cta {
+            display: inline-block;
+            padding: 14px 40px;
+            background: #fff;
+            color: #111;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .2s, color .2s;
+        }
+
+        .demo-cta:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ═══════════════ MAIN HEADER ═══════════════ -->
+    <header id="main-header">
+        <div class="max-w-screen-2xl mx-auto px-5 lg:px-8 flex items-center gap-8 h-full" style="width:100%;">
+
+            <!-- LOGO -->
+            <a href="/" id="desktop-logo" class="shrink-0 flex items-center gap-2 select-none ml-8"
+                style="text-decoration:none;">
+                <img src="/images/zig_zag_logo.png" alt="Logo" style="height:40px;width:auto;">
+            </a>
+
+            <!-- CENTER NAV (desktop) -->
+            <nav id="desktop-nav" class="flex-1 flex items-center justify-center gap-8" style="position:relative;">
+
+                <a href="/catalog?q=new+arrivals" class="nav-link" data-menu="new">New Arrivals</a>
+                <!-- <span class="nav-link" data-menu="shop">Shop</span> -->
+                <a href="/catalog?category_name=Electronics" class="nav-link" data-menu="electronics">Electronics</a>
+                <a href="/catalog?category_name=Fashion" class="nav-link" data-menu="fashion">Fashion</a>
+                <a href="/catalog?category_name=Home+%26+Living" class="nav-link" data-menu="home">Home & Living</a>
+                <a href="/catalog?category_name=Beauty" class="nav-link" data-menu="beauty">Beauty</a>
+                <a href="/catalog?category_name=Sports" class="nav-link" data-menu="sports">Sports</a>
+                <a href="/catalog?category_name=Accessories" class="nav-link" data-menu="accessories">Accessories</a>
+                <a href="/catalog?q=sale" class="nav-link sale-link" data-menu="sale">Sale</a>
+            </nav>
+
+            <!-- RIGHT ICONS (desktop) -->
+            <div id="desktop-right" class="flex items-center gap-2 shrink-0 relative">
+                <button class="icon-btn" id="search-btn" title="Search" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                </button>
+                <button class="icon-btn" id="wishlist-btn" title="Wishlist" aria-label="Wishlist">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        id="wishlist-heart-icon" fill="none" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                    <!-- <span id="wishlist-badge" class="cart-badge hidden">0</span> -->
+                </button>
+                <button onclick="window.location.href='/cart'" class="icon-btn relative" title="Cart" aria-label="Cart">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1" />
+                        <circle cx="20" cy="21" r="1" />
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                    </svg>
+                </button>
+                <!-- Login button: shown only when the user is NOT logged in -->
+                <button class="login-text-btn" id="login-btn" title="Login" aria-label="Login"
+                    onclick="window.location.href='/auth/login'">
+                    <span>Login</span>
+                </button>
+                <div class="relative" id="profile-wrapper">
+                    <button class="icon-btn hidden" id="profile-btn" title="Account" aria-label="Account">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </button>
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown">
+                        <div style="padding:16px 16px;border-bottom:1px solid #f0f0f0;">
+                            <div id="profile-name" style="font-size:13px;font-weight:600;color:#111;">Hello, Guest</div>
+                            <div id="profile-email" style="font-size:12px;color:#888;margin-top:3px;">Sign in for
+                                personalized experience
+                            </div>
+                        </div>
+                        <div class="profile-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>My Account
+                        </div>
+                        <div class="profile-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14" />
+                                <path d="M12 5l7 7-7 7" />
+                            </svg>Orders
+                        </div>
+                        <div class="profile-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="1 4 1 10 7 10" />
+                                <path d="M3.51 15a9 9 0 1 0 .49-3.51" />
+                            </svg>Returns
+                        </div>
+                        <div class="profile-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>Wishlist
+                        </div>
+                        <div onclick="window.location.href='/addresses'" class="profile-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>Addresses
+                        </div>
+                        <div class="profile-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>Notifications
+                        </div>
+                        <div onclick="window.location.href='/coupon'" class="profile-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 11 12 14 22 4" />
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                            </svg>Coupons
+                        </div>
+                        <div class="profile-item" id="admin-menu-item" onclick="window.location.href='/admin/admin-dashboard'" style="display:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+
+                                <path
+                                    d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+                                <path d="M6.376 18.91a6 6 0 0 1 11.249.003" />
+                                <circle cx="12" cy="11" r="4" />
+
+                            </svg>Admin
+                        </div>
+                        <div style="border-top:1px solid #f0f0f0;">
+                            <div class="profile-item danger" id="logout-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                    <polyline points="16 17 21 12 16 7" />
+                                    <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg>Logout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ MEGA MENUS ═══ -->
+
+        <!-- NEW ARRIVALS -->
+        <div class="mega-wrapper" id="mega-new">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="mega-col-title">Just In</div>
+                    <a class="mega-link">New This Week</a>
+                    <a class="mega-link">This Month</a>
+                    <a class="mega-link">Trending</a>
+                    <a class="mega-link">Staff Picks</a>
+                    <a class="mega-link">Top Rated</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">By Category</div>
+                    <a class="mega-link">New in Electronics</a>
+                    <a class="mega-link">New in Fashion</a>
+                    <a class="mega-link">New in Home</a>
+                    <a class="mega-link">New in Beauty</a>
+                    <a class="mega-link">New in Sports</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Collections</div>
+                    <a class="mega-link">Limited Edition</a>
+                    <a class="mega-link">Minimal Collection</a>
+                    <a class="mega-link">Eco Collection</a>
+                    <a class="mega-link">Gift Collection</a>
+                    <a class="mega-link">Premium Selection</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Popular Brands</div>
+                    <a class="mega-link">Apple</a>
+                    <a class="mega-link">Nike</a>
+                    <a class="mega-link">Samsung</a>
+                    <a class="mega-link">Sony</a>
+                    <a class="mega-link">Adidas</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Trending Searches</div>
+                    <div>
+                        <a class="trending-tag">#iPhone 16</a>
+                        <a class="trending-tag">#Winter Wear</a>
+                        <a class="trending-tag">#Smart Watch</a>
+                        <a class="trending-tag">#Minimalist</a>
+                        <a class="trending-tag">#Gift Ideas</a>
+                        <a class="trending-tag">#Budget Pick</a>
+                    </div>
+                </div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/new-arrivals_header.avif" alt="New Arrivals" />
+                        <div class="featured-banner-label">New Arrivals 2025</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOP -->
+        <div class="mega-wrapper" id="mega-shop">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="mega-col-title">Featured</div>
+                    <a class="mega-link">Best Sellers</a>
+                    <a class="mega-link">New Launches</a>
+                    <a class="mega-link">Trending Now</a>
+                    <a class="mega-link">Staff Picks</a>
+                    <a class="mega-link">Premium Collection</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Collections</div>
+                    <a class="mega-link">Limited Edition</a>
+                    <a class="mega-link">Minimal Collection</a>
+                    <a class="mega-link">Eco Collection</a>
+                    <a class="mega-link">Gift Collection</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Deals</div>
+                    <a class="mega-link">Today's Deals</a>
+                    <a class="mega-link">Under ₹499</a>
+                    <a class="mega-link">Under ₹999</a>
+                    <a class="mega-link">Clearance Sale</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Top Brands</div>
+                    <a class="mega-link">Apple</a>
+                    <a class="mega-link">Samsung</a>
+                    <a class="mega-link">Sony</a>
+                    <a class="mega-link">Nike</a>
+                    <a class="mega-link">Adidas</a>
+                    <a class="mega-link">Levi's</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Services</div>
+                    <a class="mega-link">Gift Cards</a>
+                    <a class="mega-link">Membership</a>
+                    <a class="mega-link">Rewards</a>
+                    <a class="mega-link">Business Orders</a>
+                </div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/shop_header.jpg" alt="Shop" />
+                        <div class="featured-banner-label">Shop the Edit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ELECTRONICS -->
+        <div class="mega-wrapper" id="mega-electronics">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="cursor-pointer mega-col-title">Smartphone</div>
+                    <a href="/catalog?category=19&brand=2" class="mega-link">iPhone</a>
+                    <a href="/catalog?category=19&brand=5" class="mega-link">Samsung</a>
+                    <a href="/catalog?category=19&brand=10" class="mega-link">OnePlus</a>
+                    <a href="/catalog?category=19&brand=12" class="mega-link">Google Pixel</a>
+                    <a href="/catalog?category=19&brand=11" class="mega-link">Vivo</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Computer</div>
+                    <a href="/catalog?category=20" class="mega-link">Laptop</a>
+                    <a href="/catalog?category=41" class="mega-link">Monitor</a>
+                    <a href="/catalog?category=42" class="mega-link">Tablet</a>
+                    <a href="/catalog?category=44" class="mega-link">Printer</a>
+                    <a href="/catalog?category=64" class="mega-link">Accessorie</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Audio</div>
+                    <a href="/catalog?category=46" class="mega-link">Headphone</a>
+                    <a href="/catalog?category=47" class="mega-link">Earbud</a>
+                    <a href="/catalog?category=48" class="mega-link">Speaker</a>
+                    <a href="#" class="mega-link">Soundbar</a>
+                    <div class="cursor-pointer mega-col-title" style="margin-top:16px;">Gaming</div>
+                    <a href="/catalog?category=35" class="mega-link">Console</a>
+                    <a href="/catalog?category=36" class="mega-link">Controller</a>
+                    <a href="/catalog?category=49" class="mega-link">VR</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Smart Device</div>
+                    <a href="/catalog?category=50" class="mega-link">Smart Watche</a>
+                    <a href="/catalog?category=70" class="mega-link">Smart Home</a>
+                    <a href="/catalog?category=53" class="mega-link">Security Camera</a>
+                    <a href="/catalog?category=52" class="mega-link">Projector</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Shop by Brand</div>
+                    <a class="mega-link">Apple</a>
+                    <a class="mega-link">Samsung</a>
+                    <a class="mega-link">Sony</a>
+                    <a class="mega-link">Dell</a>
+                    <a class="mega-link">HP</a>
+                    <a class="mega-link">Asus</a>
+                </div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/technology_header.jpg" alt="Electronics" />
+                        <div class="featured-banner-label">Tech Essentials</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FASHION -->
+        <div class="mega-wrapper" id="mega-fashion">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="cursor-pointer mega-col-title">Men</div>
+                    <a href="/catalog?category=56&gender=1" class="mega-link">T-Shirts</a>
+                    <a href="/catalog?category=57&gender=1" class="mega-link">Shirts</a>
+                    <a href="/catalog?category=71&gender=1" class="mega-link">Jeans</a>
+                    <a href="/catalog?category=62&gender=1" class="mega-link">Jackets</a>
+                    <a href="/catalog?category=63&gender=1" class="mega-link">Hoodies</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Women</div>
+                    <a class="mega-link">Dresse</a>
+                    <a class="mega-link">Top</a>
+                    <a class="mega-link">Ethnic Wear</a>
+                    <a class="mega-link">Sweater</a>
+                    <a class="mega-link">Jean</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Footwear</div>
+                    <a href="/catalog?category=4&gender=1" class="mega-link">Sneaker</a>
+                    <a href="/catalog?category=73&gender=1" class="mega-link">Boot</a>
+                    <a href="/catalog?category=76&gender=1" class="mega-link">Sandal</a>
+                    <a href="/catalog?category_name=Sports Shoe" class="mega-link">Sports Shoe</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Luxury Brand</div>
+                    <a class="mega-link">Nike</a>
+                    <a class="mega-link">Adidas</a>
+                    <a class="mega-link">Puma</a>
+                    <a class="mega-link">Levi's</a>
+                    <a class="mega-link">Tommy Hilfiger</a>
+                </div>
+                <div></div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/fashion_header.jpg" alt="Fashion" />
+                        <div class="featured-banner-label">New Season</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HOME & LIVING -->
+        <div class="mega-wrapper" id="mega-home">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="cursor-pointer mega-col-title">Furniture</div>
+                    <a class="mega-link">Bed</a>
+                    <a class="mega-link">Sofa</a>
+                    <a class="mega-link">Table</a>
+                    <a class="mega-link">Chair</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Kitchen</div>
+                    <a class="mega-link">Cookware</a>
+                    <a class="mega-link">Dinner Set</a>
+                    <a class="mega-link">Storage</a>
+                    <a class="mega-link">Appliances</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Decor</div>
+                    <a class="mega-link">Wall Art</a>
+                    <a class="mega-link">Mirror</a>
+                    <a class="mega-link">Plant</a>
+                    <a class="mega-link">Rug</a>
+                    <div class="cursor-pointer mega-col-title" style="margin-top:16px;">Lighting</div>
+                    <a class="mega-link">Lamps</a>
+                    <a class="mega-link">LED Lights</a>
+                    <a class="mega-link">Smart Lighting</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Home Essential</div>
+                    <a class="mega-link">Curtains</a>
+                    <a class="mega-link">Bedsheet</a>
+                    <a class="mega-link">Pillow</a>
+                    <a class="mega-link">Blanket</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Cleaning</div>
+                    <a class="mega-link">Vacuum Cleaner</a>
+                    <a class="mega-link">Laundry</a>
+                    <a class="mega-link">Organizers</a>
+                </div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/home&living_header.jpg" alt="Home & Living" />
+                        <div class="featured-banner-label">Home Stories</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BEAUTY -->
+        <div class="mega-wrapper" id="mega-beauty">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="cursor-pointer mega-col-title">Skincare</div>
+                    <a class="mega-link">Face Wash</a>
+                    <a class="mega-link">Serums</a>
+                    <a class="mega-link">Moisturizers</a>
+                    <a class="mega-link">Sunscreen</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Haircare</div>
+                    <a class="mega-link">Shampoo</a>
+                    <a class="mega-link">Conditioner</a>
+                    <a class="mega-link">Hair Oil</a>
+                    <div class="mega-col-title" style="margin-top:16px;">Fragrance</div>
+                    <a class="mega-link">Perfume</a>
+                    <a class="mega-link">Body Mist</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Makeup</div>
+                    <a class="mega-link">Lipstick</a>
+                    <a class="mega-link">Foundation</a>
+                    <a class="mega-link">Brushes</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Men's Grooming</div>
+                    <a class="mega-link">Beard Care</a>
+                    <a class="mega-link">Shaving Kits</a>
+                    <a class="mega-link">Trimmers</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Wellness</div>
+                    <a class="mega-link">Supplements</a>
+                    <a class="mega-link">Protein</a>
+                    <a class="mega-link">Essential Oils</a>
+                </div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/beauty_header.avif" alt="Beauty" />
+                        <div class="featured-banner-label">Beauty Edit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPORTS -->
+        <div class="mega-wrapper" id="mega-sports">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="cursor-pointer mega-col-title">Fitness</div>
+                    <a class="mega-link">Gym Equipment</a>
+                    <a class="mega-link">Yoga Mats</a>
+                    <a class="mega-link">Resistance Bands</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Outdoor</div>
+                    <a class="mega-link">Camping</a>
+                    <a class="mega-link">Cycling</a>
+                    <a class="mega-link">Hiking</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Sports</div>
+                    <a class="mega-link">Cricket</a>
+                    <a class="mega-link">Football</a>
+                    <a class="mega-link">Basketball</a>
+                    <a class="mega-link">Badminton</a>
+                </div>
+                <div>
+                    <div class="cursor-pointer mega-col-title">Wearables</div>
+                    <a class="mega-link">Smart Watches</a>
+                    <a class="mega-link">Fitness Trackers</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Top Brands</div>
+                    <a class="mega-link">Nike</a>
+                    <a class="mega-link">Adidas</a>
+                    <a class="mega-link">Puma</a>
+                    <a class="mega-link">Under Armour</a>
+                </div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/sports_header.jpg" alt="Sports" />
+                        <div class="featured-banner-label">Gear Up</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOYS -->
+        <div class="mega-wrapper" id="mega-toys">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="mega-col-title">Categories</div>
+                    <a class="mega-link">Educational</a>
+                    <a class="mega-link">Remote Control</a>
+                    <a class="mega-link">Building Blocks</a>
+                    <a class="mega-link">Board Games</a>
+                    <a class="mega-link">Baby Toys</a>
+                    <a class="mega-link">Action Figures</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">By Age</div>
+                    <a class="mega-link">0–2 Years</a>
+                    <a class="mega-link">3–5 Years</a>
+                    <a class="mega-link">6–10 Years</a>
+                    <a class="mega-link">10+ Years</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Popular</div>
+                    <a class="mega-link">LEGO Sets</a>
+                    <a class="mega-link">Hot Wheels</a>
+                    <a class="mega-link">Barbie</a>
+                    <a class="mega-link">Nerf Guns</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Trending Tags</div>
+                    <div>
+                        <a class="trending-tag">#STEM</a>
+                        <a class="trending-tag">#Montessori</a>
+                        <a class="trending-tag">#Gift</a>
+                        <a class="trending-tag">#Outdoor Play</a>
+                    </div>
+                </div>
+                <div></div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/toys_header.jpg" alt="Toys" />
+                        <div class="featured-banner-label">Play & Learn</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCESSORIES -->
+        <div class="mega-wrapper" id="mega-accessories">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="mega-col-title">Watches</div>
+                    <a class="mega-link">Smart Watches</a>
+                    <a class="mega-link">Luxury Watches</a>
+                    <a class="mega-link">Analog Watches</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Bags</div>
+                    <a class="mega-link">Backpacks</a>
+                    <a class="mega-link">Handbags</a>
+                    <a class="mega-link">Wallets</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Jewelry</div>
+                    <a class="mega-link">Necklaces</a>
+                    <a class="mega-link">Bracelets</a>
+                    <a class="mega-link">Rings</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Eyewear</div>
+                    <a class="mega-link">Sunglasses</a>
+                    <a class="mega-link">Blue Light Glasses</a>
+                    <div class="mega-col-title" style="margin-top:16px;">Travel</div>
+                    <a class="mega-link">Suitcases</a>
+                    <a class="mega-link">Travel Accessories</a>
+                </div>
+                <div>
+                    <div class="mega-col-title">Featured</div>
+                    <a class="mega-link">New Arrivals</a>
+                    <a class="mega-link">Best Sellers</a>
+                    <a class="mega-link">Gift Ideas</a>
+                </div>
+                <div>
+                    <div class="featured-banner">
+                        <img src="/images/accessories_header.jpg" alt="Accessories" />
+                        <div class="featured-banner-label">Curated Pieces</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SALE -->
+        <div class="mega-wrapper" id="mega-sale">
+            <div class="max-w-screen-2xl mx-auto px-8 py-8 grid grid-cols-6 gap-8">
+                <div>
+                    <div class="mega-col-title" style="color:#E8A020;">Shop by Price</div>
+                    <a class="mega-link">Under ₹499</a>
+                    <a class="mega-link">Under ₹999</a>
+                    <a class="mega-link">50% OFF & More</a>
+                    <a class="mega-link">Flash Deals</a>
+                    <a class="mega-link">Clearance</a>
+                </div>
+                <div>
+                    <div class="mega-col-title" style="color:#E8A020;">Sale Events</div>
+                    <a class="mega-link">Outlet Store</a>
+                    <a class="mega-link">Festival Sale</a>
+                    <a class="mega-link">Weekend Deal</a>
+                    <a class="mega-link">Daily Steal</a>
+                </div>
+                <div>
+                    <div class="mega-col-title" style="color:#E8A020;">Top Brands on Sale</div>
+                    <a class="mega-link">Nike</a>
+                    <a class="mega-link">Adidas</a>
+                    <a class="mega-link">Apple</a>
+                    <a class="mega-link">Samsung</a>
+                    <a class="mega-link">Sony</a>
+                </div>
+                <div>
+                    <div class="mega-col-title" style="color:#E8A020;">Trending Deals</div>
+                    <div>
+                        <a class="trending-tag" style="border-color:#E8A020;color:#E8A020;">#Flash Sale</a>
+                        <a class="trending-tag" style="border-color:#E8A020;color:#E8A020;">#Under ₹499</a>
+                        <a class="trending-tag" style="border-color:#E8A020;color:#E8A020;">#50% Off</a>
+                        <a class="trending-tag" style="border-color:#E8A020;color:#E8A020;">#Clearance</a>
+                    </div>
+                </div>
+                <div></div>
+                <div>
+                    <div class="featured-banner"
+                        style="background:#111;border-radius:4px;overflow:hidden;position:relative;height:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:8px;padding:20px;">
+                        <div style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#888;">Limited
+                            Time</div>
+                        <div
+                            style="font-size:48px;font-weight:700;color:#fff;line-height:1;font-family:'Space Grotesk',sans-serif;">
+                            50%</div>
+                        <div style="font-size:13px;color:#bbb;">Off Select Styles</div>
+                        <div style="margin-top:10px;border:1px solid #555;color:#fff;font-size:11px;padding:8px 24px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;"
+                            onmouseover="this.style.background='#fff';this.style.color='#111';"
+                            onmouseout="this.style.background='transparent';this.style.color='#fff';">Shop Now</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- Toast Notification (top center) -->
+    <div id="toast-container"
+        class="fixed top-24 left-1/2 -translate-x-1/2 z-[1001] flex flex-col gap-3 pointer-events-none"
+        style="max-width:380px;">
+        <div id="auth-toast"
+            class="hidden pointer-events-auto transform translate-x-full opacity-0 transition-all duration-300 ease-out shadow-2xl rounded-xl overflow-hidden border-l-4"
+            style="border-left-color:#16a34a;">
+            <div class="flex items-center gap-3 bg-white px-5 py-4">
+                <div id="toast-icon"
+                    class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-green-100">
+                    <svg id="toast-icon-success" class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <svg id="toast-icon-info" class="w-5 h-5 text-gray-600 hidden" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p id="toast-title" class="text-sm font-bold text-gray-900 tracking-tight"></p>
+                    <p id="toast-message" class="text-xs text-gray-500 mt-0.5 leading-relaxed"></p>
+                </div>
+                <button id="toast-close"
+                    class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── TOAST NOTIFICATIONS ──
+        (function () {
+            const toast = document.getElementById('auth-toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIconSuccess = document.getElementById('toast-icon-success');
+            const toastIconInfo = document.getElementById('toast-icon-info');
+            const toastClose = document.getElementById('toast-close');
+
+            if (!toast) return;
+
+            function showToast(title, message, type) {
+                toastTitle.textContent = title;
+                toastMessage.textContent = message;
+
+                if (type === 'success') {
+                    toastIconSuccess.classList.remove('hidden');
+                    toastIconInfo.classList.add('hidden');
+                    toast.style.borderLeftColor = '#16a34a';
+                    document.querySelector('#toast-icon').style.background = '#f0fdf4';
+                } else {
+                    toastIconSuccess.classList.add('hidden');
+                    toastIconInfo.classList.remove('hidden');
+                    toast.style.borderLeftColor = '#6b7280';
+                    document.querySelector('#toast-icon').style.background = '#f9fafb';
+                }
+
+                toast.classList.remove('hidden', 'translate-x-full', 'opacity-0');
+                toast.classList.add('translate-x-0', 'opacity-100');
+
+                setTimeout(() => {
+                    hideToast();
+                }, 4000);
+            }
+
+            function hideToast() {
+                toast.classList.remove('translate-x-0', 'opacity-100');
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }
+
+            toastClose.addEventListener('click', hideToast);
+
+            window.showToast = showToast;
+            window.hideToast = hideToast;
+
+            const params = new URLSearchParams(window.location.search);
+            const toastType = params.get('toast');
+
+            if (toastType === 'login_success') {
+                showToast('Welcome back!', 'You have successfully logged in.', 'success');
+                const url = new URL(window.location);
+                url.searchParams.delete('toast');
+                window.history.replaceState({}, '', url);
+            } else if (toastType === 'logout_success') {
+                showToast('Logged out', 'You have been successfully logged out.', 'info');
+                const url = new URL(window.location);
+                url.searchParams.delete('toast');
+                window.history.replaceState({}, '', url);
+            }
+        })();
+    </script>
+
+    {% include 'partials/search_modal.html' %}
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // ── SCROLL HIDE/SHOW HEADER ──
+        let lastScrollY = 0;
+        let isHeaderVisible = true;
+        const header = document.getElementById('main-header');
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                // Scrolling down
+                if (isHeaderVisible) {
+                    header.classList.add('scrolled-down');
+                    header.classList.remove('scrolled-up');
+                    isHeaderVisible = false;
+                }
+            } else if (currentScrollY < lastScrollY) {
+                // Scrolling up
+                if (!isHeaderVisible) {
+                    header.classList.remove('scrolled-down');
+                    header.classList.add('scrolled-up');
+                    isHeaderVisible = true;
+                }
+            }
+
+            lastScrollY = currentScrollY;
+        });
+
+        // ── MEGA MENU ──
+        let activeMenu = null;
+        let menuTimeout = null;
+
+        document.querySelectorAll('.nav-link[data-menu]').forEach(link => {
+            link.addEventListener('mouseenter', () => {
+                clearTimeout(menuTimeout);
+                if (activeMenu) {
+                    document.getElementById('mega-' + activeMenu)?.classList.remove('open');
+                    document.querySelector(`[data-menu="${activeMenu}"]`)?.classList.remove('active');
+                }
+                activeMenu = link.dataset.menu;
+                document.getElementById('mega-' + activeMenu)?.classList.add('open');
+                link.classList.add('active');
+            });
+            link.addEventListener('mouseleave', () => {
+                menuTimeout = setTimeout(() => {
+                    document.getElementById('mega-' + activeMenu)?.classList.remove('open');
+                    link.classList.remove('active');
+                    activeMenu = null;
+                }, 120);
+            });
+        });
+
+        document.querySelectorAll('.mega-wrapper').forEach(menu => {
+            menu.addEventListener('mouseenter', () => clearTimeout(menuTimeout));
+            menu.addEventListener('mouseleave', () => {
+                menuTimeout = setTimeout(() => {
+                    menu.classList.remove('open');
+                    if (activeMenu) {
+                        document.querySelector(`[data-menu="${activeMenu}"]`)?.classList.remove('active');
+                        activeMenu = null;
+                    }
+                }, 100);
+            });
+        });
+
+        // ── PROFILE DROPDOWN ──
+        const profileBtn = document.getElementById('profile-btn');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        let profileTimeout = null;
+        let adminCheckPromise = null;
+
+        document.getElementById('profile-wrapper')?.addEventListener('mouseenter', () => {
+            clearTimeout(profileTimeout);
+            profileDropdown.classList.add('open');
+
+            const adminItem = document.getElementById('admin-menu-item');
+            if (!adminItem) return;
+
+            if (adminCheckPromise) return;
+
+            adminCheckPromise = fetch('/auth/is-admin', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${window.auth.getAccessToken()}`,
+                },
+            })
+            .then(res => {
+                adminCheckPromise = null;
+                return res.ok;
+            })
+            .catch(() => {
+                adminCheckPromise = null;
+                return false;
+            })
+            .then(isAdmin => {
+                adminItem.style.display = isAdmin ? '' : 'none';
+            });
+        });
+        document.getElementById('profile-wrapper')?.addEventListener('mouseleave', () => {
+            profileTimeout = setTimeout(() => profileDropdown.classList.remove('open'), 150);
+        });
+
+        // const megaBrands = ['Apple', 'Nike', 'Samsung', 'Sony', 'Adidas', 'Dell', 'HP', 'Lenovo', "Levi's", 'Tommy Hilfiger', 'Puma', 'Under Armour'];
+        // document.querySelectorAll('.mega-link').forEach(link => {
+        //     const text = link.textContent.trim();
+        //     if (megaBrands.some(b => text.toLowerCase() === b.toLowerCase())) {
+        //         link.href = '/catalog?brand_name=' + encodeURIComponent(text);
+        //     } else {
+        //         link.href = '/catalog?q=' + encodeURIComponent(text);
+        //     }
+        // });
+
+        document.querySelectorAll('.trending-tag').forEach(tag => {
+            let text = tag.textContent.trim().replace(/^#/, '');
+            tag.href = '/catalog?q=' + encodeURIComponent(text);
+        });
+
+        document.querySelectorAll('.mega-col-title').forEach(el => {
+            const text = el.textContent.trim();
+            if (text) {
+                el.onclick = () => {
+                    window.location.href = '/catalog?category_name=' + encodeURIComponent(text);
+                };
+            }
+        });
+
+        // ── WISHLIST TOGGLE ──
+        (function () {
+            const wishlistBtn = document.getElementById('wishlist-btn');
+            const wishlistIcon = document.getElementById('wishlist-heart-icon');
+            const wishlistBadge = document.getElementById('wishlist-badge');
+            if (!wishlistBtn) return;
+
+            function updateWishlistBadge() {
+                if (!wishlistBadge) return;
+                window.auth.authFetch('/wishlist')
+                    .then(function (res) { return res.json(); })
+                    .then(function (items) {
+                        var count = Array.isArray(items) ? items.length : 0;
+                        wishlistBadge.textContent = count;
+                        if (count === 0) {
+                            wishlistBadge.classList.add('hidden');
+                        } else {
+                            wishlistBadge.classList.remove('hidden');
+                        }
+                    })
+                    .catch(function () { });
+            }
+
+            updateWishlistBadge();
+            window.updateWishlistBadge = updateWishlistBadge;
+
+            wishlistBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const variantId = document.body.dataset.productVariantId;
+                if (!variantId) {
+                    window.location.href = '/wishlist';
+                    return;
+                }
+
+                const pid = parseInt(variantId, 10);
+
+                window.auth.authFetch('/wishlist/check?product_variant_id=' + pid)
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.in_wishlist) {
+                            return window.auth.authFetch('/wishlist/' + pid, { method: 'DELETE' })
+                                .then(function (r) { return r.json(); })
+                                .then(function (result) {
+                                    wishlistIcon.setAttribute('fill', 'none');
+                                    window.showToast('Removed', 'Item removed from wishlist.', 'info');
+                                    updateWishlistBadge();
+                                });
+                        } else {
+                            return window.auth.authFetch('/wishlist', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ product_variant_id: pid })
+                            })
+                                .then(function (r) { return r.json(); })
+                                .then(function (result) {
+                                    wishlistIcon.setAttribute('fill', 'currentColor');
+                                    window.showToast('Added', 'Item added to wishlist.', 'success');
+                                    updateWishlistBadge();
+                                });
+                        }
+                    })
+                    .catch(function () {
+                        window.showToast('Error', 'Something went wrong.', 'info');
+                    });
+            });
+        })();
+
+    </script>
+</body>
+
+</html>

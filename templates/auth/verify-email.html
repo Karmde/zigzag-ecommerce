@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email | ZigZag</title>
+
+    <link rel="icon" type="image/png" href="/images/zig_zag_logo.png">
+</head>
+
+<body class="bg-white min-h-screen flex flex-col">
+
+    {% include 'partials/header.html' %}
+
+    <main class="flex-1 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
+            <!-- Email Icon -->
+            <div class="flex justify-center">
+                <div class="w-16 h-16 rounded-full border border-black flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 8.25L12 14.25L21 8.25M5.25 19.5H18.75C19.9926 19.5 21 18.4926 21 17.25V6.75C21 5.50736 19.9926 4.5 18.75 4.5H5.25C4.00736 4.5 3 5.50736 3 6.75V17.25C3 18.4926 4.00736 19.5 5.25 19.5Z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Heading -->
+            <p class="text-3xl font-bold text-center mt-6">
+                Verify Your Email
+            </p>
+
+            <!-- Description -->
+            <p class="text-gray-600 text-center mt-3 leading-relaxed">
+                We've sent a <span class="font-medium text-black">6-digit verification code</span> to
+            </p>
+
+            <p class="text-center font-semibold mt-2" id="maskedEmail">
+                Loading...
+            </p>
+
+            <!-- Invalid/expired link error -->
+            <p id="pageError"
+                class="hidden mt-4 flex items-center justify-center gap-2 text-sm text-red-500 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M9.401 3.003c1.155-2.004 4.043-2.004 5.198 0l6.857 11.892c1.155 2.004-.289 4.505-2.599 4.505H5.143c-2.31 0-3.754-2.501-2.599-4.505L9.401 3.003zm2.599 4.247a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8a.75.75 0 01.75-.75zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span id="pageErrorText">Invalid or expired verification link. Please sign up again.</span>
+            </p>
+
+            <!-- OTP -->
+            <div class="flex justify-center gap-4 mt-8" id="otpContainer">
+
+                <input type="text" inputmode="numeric" maxlength="1" data-otp-index="0" class="otp-input w-14 h-16 rounded-xl border border-gray-300 text-center text-2xl font-semibold
+                    focus:border-black focus:ring-2 focus:ring-black/10 outline-none transition">
+
+                <input type="text" inputmode="numeric" maxlength="1" data-otp-index="1" class="otp-input w-14 h-16 rounded-xl border border-gray-300 text-center text-2xl font-semibold
+                    focus:border-black focus:ring-2 focus:ring-black/10 outline-none transition">
+
+                <input type="text" inputmode="numeric" maxlength="1" data-otp-index="2" class="otp-input w-14 h-16 rounded-xl border border-gray-300 text-center text-2xl font-semibold
+                    focus:border-black focus:ring-2 focus:ring-black/10 outline-none transition">
+
+                <input type="text" inputmode="numeric" maxlength="1" data-otp-index="3" class="otp-input w-14 h-16 rounded-xl border border-gray-300 text-center text-2xl font-semibold
+                    focus:border-black focus:ring-2 focus:ring-black/10 outline-none transition">
+
+                <input type="text" inputmode="numeric" maxlength="1" data-otp-index="4" class="otp-input w-14 h-16 rounded-xl border border-gray-300 text-center text-2xl font-semibold
+                    focus:border-black focus:ring-2 focus:ring-black/10 outline-none transition">
+
+                <input type="text" inputmode="numeric" maxlength="1" data-otp-index="5" class="otp-input w-14 h-16 rounded-xl border border-gray-300 text-center text-2xl font-semibold
+                    focus:border-black focus:ring-2 focus:ring-black/10 outline-none transition">
+
+            </div>
+
+            <!-- OTP error (wrong code, expired, etc.) -->
+            <p id="otpError"
+                class="hidden mt-4 flex items-center justify-center gap-2 text-sm text-red-500 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M9.401 3.003c1.155-2.004 4.043-2.004 5.198 0l6.857 11.892c1.155 2.004-.289 4.505-2.599 4.505H5.143c-2.31 0-3.754-2.501-2.599-4.505L9.401 3.003zm2.599 4.247a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8a.75.75 0 01.75-.75zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span id="otpErrorText">Incorrect code. Please try again.</span>
+            </p>
+
+            <!-- Success message -->
+            <p id="otpSuccess" class="hidden mt-4 text-sm text-green-600 text-center font-medium">
+                Email verified successfully! Redirecting to login...
+            </p>
+
+            <!-- Verify Button -->
+            <button id="verifyButton" disabled
+                class="w-full bg-black text-white py-3 rounded-lg mt-8 font-medium hover:bg-gray-900 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                Verify Email
+            </button>
+
+            <!-- Timer -->
+            <div class="text-center mt-6" id="timerBlock">
+
+                <p class="text-gray-500 text-sm">
+                    Resend code in
+                </p>
+
+                <p class="font-semibold text-black mt-1" id="resendTimer">
+                    00:45
+                </p>
+
+            </div>
+
+            <!-- Resend button (shown once timer hits 0) -->
+            <div class="text-center mt-6 hidden" id="resendBlock">
+                <button id="resendButton" type="button"
+                    class="text-black font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed">
+                    Resend Code
+                </button>
+            </div>
+
+            <!-- Help -->
+            <div class="border-t border-gray-200 mt-8 pt-6">
+
+                <p class="text-center font-medium">
+                    Didn't receive the code?
+                </p>
+
+                <ul class="text-sm text-gray-600 mt-3 space-y-2">
+                    <li>• Check your Spam / Junk folder.</li>
+                    <li>
+                        • <a href="/auth/signup" class="text-black font-medium hover:underline">
+                            Change Email
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+
+            <!-- Back -->
+            <div class="mt-8 text-center">
+
+                <a href="/auth/signup" class="inline-flex items-center gap-2 text-gray-700 hover:text-black transition">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19L8 12L15 5" />
+
+                    </svg>
+
+                    Back to Sign Up
+
+                </a>
+
+            </div>
+        </div>
+    </main>
+
+    {% include 'partials/footer.html' %}
+
+    <script>
+        // ---- Element references ----
+        const otpInputs = Array.from(document.querySelectorAll(".otp-input"));
+        const verifyButton = document.getElementById("verifyButton");
+        const maskedEmail = document.getElementById("maskedEmail");
+        const pageError = document.getElementById("pageError");
+        const pageErrorText = document.getElementById("pageErrorText");
+        const otpError = document.getElementById("otpError");
+        const otpErrorText = document.getElementById("otpErrorText");
+        const otpSuccess = document.getElementById("otpSuccess");
+        const timerBlock = document.getElementById("timerBlock");
+        const resendTimer = document.getElementById("resendTimer");
+        const resendBlock = document.getElementById("resendBlock");
+        const resendButton = document.getElementById("resendButton");
+        const otpContainer = document.getElementById("otpContainer");
+
+        const OTP_LENGTH = 6;
+        const RESEND_SECONDS = 45;
+        let countdownHandle = null;
+
+        // ---- Get token from URL ----
+        const token = new URLSearchParams(window.location.search).get("token");
+
+        if (!token) {
+            showFatalError("Invalid verification link. Please sign up again.");
+        } else {
+            loadPendingEmail();
+            startCountdown(RESEND_SECONDS);
+        }
+
+        // ---- Disable the whole page (invalid/expired link) ----
+        function showFatalError(message) {
+            pageErrorText.textContent = message;
+            pageError.classList.remove("hidden");
+            otpContainer.classList.add("opacity-40", "pointer-events-none");
+            verifyButton.disabled = true;
+            timerBlock.classList.add("hidden");
+            resendBlock.classList.add("hidden");
+        }
+
+        // ---- Load masked email for this token ----
+        async function loadPendingEmail() {
+            try {
+                const response = await fetch("/auth/pending-signup?token=" + encodeURIComponent(token));
+
+                if (!response.ok) {
+                    showFatalError("Invalid or expired verification link. Please sign up again.");
+                    return;
+                }
+
+                const data = await response.json();
+                maskedEmail.textContent = data.email;
+
+            } catch (err) {
+                console.error("Failed to load pending signup:", err);
+                showFatalError("Couldn't reach the server. Please refresh the page.");
+            }
+        }
+
+        // ---- OTP input behavior: auto-advance, backspace, paste ----
+        otpInputs.forEach((input, index) => {
+            input.addEventListener("input", () => {
+                // Only allow a single digit
+                input.value = input.value.replace(/[^0-9]/g, "").slice(0, 1);
+
+                otpError.classList.add("hidden");
+
+                if (input.value !== "" && index < OTP_LENGTH - 1) {
+                    otpInputs[index + 1].focus();
+                }
+
+                updateVerifyButtonState();
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Backspace" && input.value === "" && index > 0) {
+                    otpInputs[index - 1].focus();
+                    otpInputs[index - 1].value = "";
+                    updateVerifyButtonState();
+                    e.preventDefault();
+                }
+            });
+
+            input.addEventListener("paste", (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData)
+                    .getData("text")
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, OTP_LENGTH);
+
+                if (!pasted) return;
+
+                pasted.split("").forEach((digit, i) => {
+                    if (otpInputs[i]) otpInputs[i].value = digit;
+                });
+
+                const nextIndex = Math.min(pasted.length, OTP_LENGTH - 1);
+                otpInputs[nextIndex].focus();
+                updateVerifyButtonState();
+            });
+        });
+
+        function getOtpValue() {
+            return otpInputs.map(input => input.value).join("");
+        }
+
+        function updateVerifyButtonState() {
+            const otp = getOtpValue();
+            verifyButton.disabled = otp.length !== OTP_LENGTH || !/^\d{6}$/.test(otp);
+        }
+
+        function clearOtpInputs() {
+            otpInputs.forEach(input => (input.value = ""));
+            otpInputs[0].focus();
+            updateVerifyButtonState();
+        }
+
+        // ---- Verify button click ----
+        verifyButton.addEventListener("click", async () => {
+            const otp = getOtpValue();
+            if (otp.length !== OTP_LENGTH) return;
+
+            verifyButton.disabled = true;
+            otpError.classList.add("hidden");
+
+            try {
+                const response = await fetch("/auth/verify-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token, otp }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    otpErrorText.textContent = data.detail || "Incorrect code. Please try again.";
+                    otpError.classList.remove("hidden");
+                    clearOtpInputs();
+                    return;
+                }
+
+                // Success
+                otpContainer.classList.add("opacity-40", "pointer-events-none");
+                otpSuccess.classList.remove("hidden");
+                timerBlock.classList.add("hidden");
+                resendBlock.classList.add("hidden");
+
+                setTimeout(() => {
+                    window.location.href = "/auth/login";
+                }, 1500);
+
+            } catch (err) {
+                console.error("Verification failed:", err);
+                otpErrorText.textContent = "Couldn't reach the server. Please try again.";
+                otpError.classList.remove("hidden");
+                verifyButton.disabled = false;
+            }
+        });
+
+        // ---- Resend countdown ----
+        function startCountdown(seconds) {
+            let remaining = seconds;
+            timerBlock.classList.remove("hidden");
+            resendBlock.classList.add("hidden");
+            updateTimerDisplay(remaining);
+
+            clearInterval(countdownHandle);
+            countdownHandle = setInterval(() => {
+                remaining -= 1;
+                updateTimerDisplay(remaining);
+
+                if (remaining <= 0) {
+                    clearInterval(countdownHandle);
+                    timerBlock.classList.add("hidden");
+                    resendBlock.classList.remove("hidden");
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(remaining) {
+            const mins = String(Math.floor(remaining / 60)).padStart(2, "0");
+            const secs = String(remaining % 60).padStart(2, "0");
+            resendTimer.textContent = `${mins}:${secs}`;
+        }
+
+        // ---- Resend button click ----
+        resendButton.addEventListener("click", async () => {
+            resendButton.disabled = true;
+            otpError.classList.add("hidden");
+
+            try {
+                const response = await fetch("/auth/resend-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    otpErrorText.textContent = data.detail || "Couldn't resend the code. Please try again.";
+                    otpError.classList.remove("hidden");
+                    resendButton.disabled = false;
+                    return;
+                }
+
+                clearOtpInputs();
+                startCountdown(RESEND_SECONDS);
+
+            } catch (err) {
+                console.error("Resend failed:", err);
+                otpErrorText.textContent = "Couldn't reach the server. Please try again.";
+                otpError.classList.remove("hidden");
+                resendButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

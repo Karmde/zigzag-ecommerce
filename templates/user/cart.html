@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body class="bg-white min-h-screen flex flex-col">
+    {% include 'partials/header.html' %}
+    <div class="flex-1">
+        {% if cart_items %}
+        <div id="cartContent" class="max-w-7xl mx-auto flex gap-8 p-6 py-12">
+
+            <!-- Cart -->
+            <div class="w-2/3">
+
+                <!-- Cart Heading -->
+                <h2 class="text-3xl font-semibold text-black ml-6 mb-4 mt-12">
+                    Cart items
+                </h2>
+
+                {% for item in cart_items %}
+                <div class="{% if not loop.last %}border-b border-gray-300 pb-6{% endif %} cart-item-row">
+                    <!-- Cart Item -->
+                    <div class="p-4 flex gap-5">
+
+                        <!-- Left -->
+                        <div class="w-44 flex flex-col">
+
+                            <!-- Product Image -->
+                            <img src="{{ item.image_url or 'https://adn-static1.nykaa.com/nykdesignstudio-images/pub/media/catalog/product/a/d/ad22b92Nike-553558-404_1.jpg?rnd=20200526195200&tr=w-512' }}"
+                                class="w-full h-48 object-contain">
+
+                            <div class="mt-3 flex items-center gap-3">
+
+                                <!-- Quantity -->
+                                <div class="flex border rounded-xl overflow-hidden flex-1">
+
+                                    {% if item.quantity > 1 %}
+                                    <button class="w-10 h-10 text-xl hover:bg-gray-100 transition cart-qty-minus"
+                                        data-cart-id="{{ item.id }}">
+                                        −
+                                    </button>
+                                    {% else %}
+                                    <button
+                                        class="w-10 h-10 text-xl hover:bg-gray-100 transition text-red-500 cart-qty-delete"
+                                        data-cart-id="{{ item.id }}" title="Remove item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mx-auto" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+
+                                    <div class="cart-qty flex-1 flex items-center justify-center font-semibold"
+                                        data-cart-id="{{ item.id }}">
+                                        {{ item.quantity }}
+                                    </div>
+
+                                    <button class="w-10 h-10 text-xl hover:bg-gray-100 transition cart-qty-plus"
+                                        data-cart-id="{{ item.id }}">
+                                        +
+                                    </button>
+
+                                </div>
+
+                                <!-- Wishlist -->
+                                <button
+                                    class="w-10 h-10 border rounded-xl flex items-center justify-center hover:bg-gray-100 transition cart-wishlist"
+                                    data-cart-id="{{ item.id }}" data-variant-id="{{ item.product_variant_id }}"
+                                    data-wishlist-id="{{ wishlist_map.get(item.product_variant_id|string, '') }}"
+                                    data-in-wishlist="{{ 'true' if item.product_variant_id in wishlist_variant_ids else 'false' }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                        fill="{{ 'currentColor' if item.product_variant_id in wishlist_variant_ids else 'none' }}"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                                    </svg>
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Right -->
+                        <div class="flex-1 relative">
+
+                            <!-- Price -->
+                            <div class="absolute right-0 top-0 flex items-center gap-2">
+                                <!-- Final Price -->
+                                <p class="text-xl font-semibold text-black cart-item-price"
+                                    data-price="{{ item.unit_price }}">
+                                    ₹{{ item.unit_price | inr }}
+                                </p>
+
+                                {% if item.discount_percent and item.discount_percent > 0 %}
+                                <!-- Original Price -->
+                                <p class="text-sm text-gray-400 line-through cart-item-base-price"
+                                    data-base-price="{{ item.base_price }}">
+                                    ₹{{ item.base_price | inr }}
+                                </p>
+
+                                <!-- Discount Badge -->
+                                <span class="text-xs font-semibold text-red-600">
+                                    {{ "%.0f"|format(item.discount_percent) }}% OFF
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Product Name -->
+                            <p class="text-xl font-semibold pr-28">
+                                {{ item.product_name }}
+                            </p>
+
+                            <!-- Category -->
+                            <p class="text-gray-500 font-semibold mt-1">
+                                {{ item.category_name or '' }}
+                            </p>
+
+                            <!-- Color -->
+                            {% if item.color_name %}
+                            <p class="mt-1 text-gray-500 font-semibold">
+                                <span class="text-black font-bold">Colour:</span> {{ item.color_name }}
+                            </p>
+                            {% endif %}
+
+                            <!-- Size -->
+                            {% if item.size_name %}
+                            <p class="mt-1 text-gray-500 font-semibold">
+                                <span class="text-black font-bold">Size:</span> {{ item.size_name }}
+                            </p>
+                            {% endif %}
+
+                            <!-- Delivery -->
+                            <p class="mt-5 text-gray-500 font-semibold">
+                                Delivered by Wed, 02 Jul
+                            </p>
+
+                            <!-- Return -->
+                            <p class="mt-1 text-gray-500 font-semibold">
+                                14 Day Return
+                            </p>
+
+                        </div>
+
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <!-- Summary -->
+            <div class="w-1/3">
+                <div class="sticky top-40">
+
+                    <!-- Order Summary Card -->
+                    <div class="p-6">
+
+                        <!-- Heading -->
+                        <h2 class="text-2xl font-bold text-black mb-6">
+                            Summary
+                        </h2>
+                        <!-- Price Details -->
+                        <div class="space-y-4">
+
+                            <!-- Cart Total (Original Price) -->
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700 font-semibold">Cart Total</span>
+                                <span class="font-semibold text-black">
+                                    ₹{{ original_total | inr }}
+                                </span>
+                            </div>
+
+                            <!-- Discount -->
+                            <div id="savingsRow"
+                                class="flex justify-between items-center {% if not has_discount %}hidden{% endif %}">
+                                <span class="text-gray-700 font-semibold">Discount</span>
+                                <span class="font-semibold text-red-600">
+                                    -₹{{ total_savings | inr }}
+                                </span>
+                            </div>
+
+                            <!-- Promo Discount -->
+                            <div id="promoDiscountRow" class="hidden flex justify-between items-center">
+                                <span class="text-gray-700 font-semibold">Coupon Code</span>
+                                <span id="promoDiscountValue" class="font-semibold text-red-600">-₹0</span>
+                            </div>
+
+                            <!-- Shipping -->
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700 font-semibold">Shipping Charge</span>
+                                <span class="font-semibold text-green-600">Free</span>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="flex justify-between items-center text-lg font-bold pt-2">
+                                <span>Total</span>
+                                <span class="font-semibold text-black cart-total-value">
+                                    ₹{{ cart_total | inr }}
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="my-6 border-gray-300">
+
+                        <!-- Promo Section -->
+                        <div id="promoSection">
+
+                            <!-- Promo Trigger -->
+                            <div id="promoTrigger"
+                                class="flex items-center justify-between py-3 cursor-pointer rounded-lg transition">
+
+                                <!-- Left -->
+                                <div class="flex items-center gap-4">
+
+                                    <!-- Discount Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path
+                                            d="M2 9a3 3 0 1 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 1 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+                                        <path d="M9 9h.01" />
+                                        <path d="m15 9-6 6" />
+                                        <path d="M15 15h.01" />
+                                    </svg>
+
+                                    <div>
+                                        <p class="font-semibold">Have a coupon code?</p>
+                                        <p class="text-gray-500 text-sm">
+                                            Apply now to get instant savings.
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                                <!-- Arrow -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-gray-500" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
+                                </svg>
+
+                            </div>
+
+                            <!-- Applied Coupon -->
+                            <div id="appliedCoupon" class="hidden">
+                                <div class="flex items-center justify-between bg-white">
+                                    <div>
+                                        <p class="text-xs font-medium text-black uppercase tracking-wide">Coupon Code
+                                            Applied</p>
+                                        <p id="appliedCouponCode"
+                                            class="text-lg font-bold tracking-wider mt-1 text-black uppercase"></p>
+                                    </div>
+                                    <button id="removeCoupon"
+                                        class="text-black hover:text-gray-700 text-sm font-medium border-2 border-black px-3 py-1.5 rounded-lg transition hover:bg-gray-100">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="my-6 border-gray-300">
+
+                        <!-- Button -->
+                        <button
+                            class="w-full bg-black text-white py-4 rounded-full font-semibold text-lg hover:bg-gray-600 transition duration-300">
+                            Proceed to Buy
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+        <div id="cartEmpty" class="hidden text-center py-20 pb-20">
+            <p class="text-gray-500 text-lg">Your cart is empty.</p>
+            <a href="/catalog" class="mt-4 inline-block text-black font-semibold underline">Browse Products</a>
+        </div>
+        {% else %}
+        <div class="text-center py-20 pb-20">
+            <p class="text-gray-500 text-lg">Your cart is empty.</p>
+            <a href="/catalog" class="mt-4 inline-block text-black font-semibold underline">Browse Products</a>
+        </div>
+        {% endif %}
+    </div>
+    <!-- Promo Modal -->
+    <div id="promoModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+
+        <!-- Card -->
+        <div class="bg-white w-full max-w-md rounded-2xl p-8 relative">
+
+            <!-- Close -->
+            <button id="closePromo" class="absolute top-4 right-4 text-2xl text-gray-500 hover:text-black">
+                &times;
+            </button>
+
+            <!-- Title -->
+            <h2 class="text-2xl font-bold text-center mb-8">
+                Have a Coupon Code?
+            </h2>
+
+            <!-- Input -->
+            <div class="relative">
+
+                <input type="text" id="promoCode" placeholder=" "
+                    class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 pr-28 focus:outline-none focus:border-black">
+
+                <label for="promoCode" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                    peer-placeholder-shown:top-4
+                    peer-placeholder-shown:text-base
+                    peer-focus:-top-2
+                    peer-focus:text-xs
+                    peer-focus:text-black
+                    top-[-8px] text-xs">
+
+                    Coupon Code
+
+                </label>
+
+                <!-- Apply Button -->
+                <button id="applyPromo"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-black text-white px-5 py-2 rounded-lg hover:bg-gray-800 transition">
+                    Apply
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    </div>
+    {% include 'partials/footer.html' %}
+    <script>
+        (function () {
+            'use strict';
+
+            function initCart() {
+                function getQtyEl(cartId) {
+                    return document.querySelector('.cart-qty[data-cart-id="' + cartId + '"]');
+                }
+
+                function getRowEl(cartId) {
+                    var control = document.querySelector('[data-cart-id="' + cartId + '"]');
+                    return control ? control.closest('.cart-item-row') : null;
+                }
+
+                function parseAmount(value) {
+                    var amount = Number.parseFloat(String(value == null ? '' : value).replace(/[^0-9.-]/g, ''));
+                    return Number.isFinite(amount) ? amount : 0;
+                }
+
+                function formatAmount(value) {
+                    return '₹' + Math.round(Number(value || 0)).toLocaleString('en-IN');
+                }
+
+                function getSummaryRow(label) {
+                    var labels = document.querySelectorAll('#cartContent span');
+
+                    for (var index = 0; index < labels.length; index += 1) {
+                        var labelEl = labels[index];
+                        if (labelEl.textContent.trim() !== label) continue;
+
+                        var row = labelEl.parentElement;
+                        if (
+                            row &&
+                            row.classList.contains('flex') &&
+                            row.classList.contains('justify-between') &&
+                            row.classList.contains('items-center')
+                        ) {
+                            return row;
+                        }
+                    }
+
+                    return null;
+                }
+
+                function setSummaryRowValue(row, value) {
+                    if (!row) return;
+
+                    var spans = row.querySelectorAll('span');
+                    if (spans.length > 1) spans[spans.length - 1].textContent = value;
+                }
+
+                function updateCartSummary() {
+                    var cartTotal = 0;
+                    var originalTotal = 0;
+                    var totalSavings = 0;
+
+                    document.querySelectorAll('.cart-item-row').forEach(function (row) {
+                        var priceEl = row.querySelector('.cart-item-price');
+                        var quantityEl = row.querySelector('.cart-qty');
+                        var basePriceEl = row.querySelector('.cart-item-base-price');
+
+                        if (!priceEl || !quantityEl) return;
+
+                        var price = parseAmount(priceEl.dataset.price);
+                        var basePrice = basePriceEl ? parseAmount(basePriceEl.dataset.basePrice) : price;
+                        var quantity = Number.parseInt(quantityEl.textContent, 10) || 0;
+                        var savingsPerItem = Math.max(0, basePrice - price);
+
+                        cartTotal += price * quantity;
+                        originalTotal += basePrice * quantity;
+                        totalSavings += savingsPerItem * quantity;
+                    });
+
+                    var couponDiscount = 0;
+                    if (currentCoupon && currentCoupon.discount_amount) {
+                        couponDiscount = currentCoupon.discount_amount;
+                    }
+
+                    var finalTotal = Math.max(0, cartTotal - couponDiscount);
+
+                    setSummaryRowValue(getSummaryRow('Cart Total'), formatAmount(originalTotal));
+
+                    var savingsRow = document.getElementById('savingsRow') || getSummaryRow('Discount');
+                    var hasProductDiscount = totalSavings > 0;
+                    setSummaryRowValue(savingsRow, '-' + formatAmount(totalSavings));
+
+                    if (savingsRow) {
+                        savingsRow.classList.toggle('hidden', !hasProductDiscount);
+                        savingsRow.hidden = !hasProductDiscount;
+                    }
+
+                    var promoDiscountRow = document.getElementById('promoDiscountRow');
+                    var promoDiscountValue = document.getElementById('promoDiscountValue');
+                    if (promoDiscountRow && promoDiscountValue) {
+                        if (couponDiscount > 0) {
+                            promoDiscountRow.classList.remove('hidden');
+                            promoDiscountValue.textContent = '-' + '₹' + Math.round(couponDiscount).toLocaleString('en-IN');
+                        } else {
+                            promoDiscountRow.classList.add('hidden');
+                        }
+                    }
+
+                    document.querySelectorAll('.cart-total-value').forEach(function (el) {
+                        el.textContent = formatAmount(finalTotal);
+                    });
+                }
+
+                function showToast(title, message, type) {
+                    var toast = document.getElementById('auth-toast');
+                    if (!toast) return;
+
+                    var toastTitle = document.getElementById('toast-title');
+                    var toastMessage = document.getElementById('toast-message');
+                    var toastIconSuccess = document.getElementById('toast-icon-success');
+                    var toastIconInfo = document.getElementById('toast-icon-info');
+
+                    if (toastTitle) toastTitle.textContent = title;
+                    if (toastMessage) toastMessage.textContent = message;
+
+                    if (type === 'success') {
+                        if (toastIconSuccess) toastIconSuccess.classList.remove('hidden');
+                        if (toastIconInfo) toastIconInfo.classList.add('hidden');
+                        toast.style.borderLeftColor = '#16a34a';
+                    } else {
+                        if (toastIconSuccess) toastIconSuccess.classList.add('hidden');
+                        if (toastIconInfo) toastIconInfo.classList.remove('hidden');
+                        toast.style.borderLeftColor = '#dc2626';
+                    }
+
+                    toast.classList.remove('hidden', 'translate-x-full', 'opacity-0');
+                    toast.classList.add('translate-x-0', 'opacity-100');
+
+                    window.setTimeout(function () {
+                        toast.classList.remove('translate-x-0', 'opacity-100');
+                        toast.classList.add('translate-x-full', 'opacity-0');
+                        window.setTimeout(function () {
+                            toast.classList.add('hidden');
+                        }, 300);
+                    }, 3000);
+                }
+
+                function responseWithBody(response) {
+                    return response.text().then(function (text) {
+                        var body = {};
+
+                        if (text) {
+                            try {
+                                body = JSON.parse(text);
+                            } catch (error) {
+                                body = { detail: text };
+                            }
+                        }
+
+                        return {
+                            ok: response.ok,
+                            status: response.status,
+                            body: body
+                        };
+                    });
+                }
+
+                function errorMessage(result, fallback) {
+                    if (!result || !result.body || result.body.detail == null) return fallback;
+                    return String(result.body.detail);
+                }
+
+                function setControlsBusy(controls, busy) {
+                    if (!controls) return;
+
+                    controls.dataset.updating = String(busy);
+                    controls.querySelectorAll('button').forEach(function (button) {
+                        button.disabled = busy;
+                        button.classList.toggle('opacity-50', busy);
+                        button.classList.toggle('cursor-not-allowed', busy);
+                    });
+                }
+
+                function createMinusButton(cartId) {
+                    var button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'w-10 h-10 text-xl hover:bg-gray-100 transition cart-qty-minus';
+                    button.dataset.cartId = cartId;
+                    button.textContent = '−';
+                    return button;
+                }
+
+                function createDeleteButton(cartId) {
+                    var button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'w-10 h-10 text-xl hover:bg-gray-100 transition text-red-500 cart-qty-delete';
+                    button.dataset.cartId = cartId;
+                    button.title = 'Remove item';
+                    button.setAttribute('aria-label', 'Remove item');
+                    button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
+                    return button;
+                }
+
+                function syncQuantityControl(controls, cartId, quantity) {
+                    if (!controls) return;
+
+                    var minusButton = controls.querySelector('.cart-qty-minus');
+                    var deleteButton = controls.querySelector('.cart-qty-delete');
+
+                    if (quantity > 1 && deleteButton) {
+                        deleteButton.replaceWith(createMinusButton(cartId));
+                    }
+
+                    if (quantity === 1 && minusButton) {
+                        minusButton.replaceWith(createDeleteButton(cartId));
+                    }
+                }
+
+                function updateQuantity(button, change) {
+                    var cartId = Number.parseInt(button.dataset.cartId, 10);
+                    var quantityEl = getQtyEl(cartId);
+                    var controls = button.parentElement;
+
+                    if (!Number.isFinite(cartId) || !quantityEl || !controls || controls.dataset.updating === 'true') {
+                        return;
+                    }
+
+                    var currentQuantity = Number.parseInt(quantityEl.textContent, 10) || 1;
+                    var nextQuantity = currentQuantity + change;
+                    if (nextQuantity < 1) return;
+
+                    setControlsBusy(controls, true);
+
+                    window.auth.authFetch('/cart/' + cartId, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ quantity: nextQuantity })
+                    })
+                        .then(responseWithBody)
+                        .then(function (result) {
+                            if (!result.ok) {
+                                showToast('Error', errorMessage(result, 'Failed to update quantity.'), 'error');
+                                return;
+                            }
+
+                            quantityEl.textContent = nextQuantity;
+                            syncQuantityControl(controls, cartId, nextQuantity);
+
+                            refreshCoupon().catch(function () {
+                                updateCartSummary();
+                            });
+                        })
+                        .catch(function () {
+                            showToast('Error', 'Something went wrong.', 'error');
+                        })
+                        .finally(function () {
+                            setControlsBusy(controls, false);
+                        });
+                }
+
+                function removeCartItem(button) {
+                    var cartId = Number.parseInt(button.dataset.cartId, 10);
+                    var rowEl = getRowEl(cartId);
+                    var controls = button.parentElement;
+
+                    if (!Number.isFinite(cartId) || !rowEl || !controls || controls.dataset.updating === 'true') {
+                        return;
+                    }
+
+                    setControlsBusy(controls, true);
+
+                    window.auth.authFetch('/cart/' + cartId, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                        .then(responseWithBody)
+                        .then(function (result) {
+                            if (!result.ok) {
+                                showToast('Error', errorMessage(result, 'Failed to remove item.'), 'error');
+                                return;
+                            }
+
+                            rowEl.style.opacity = '0';
+                            rowEl.style.transform = 'translateX(20px)';
+                            rowEl.style.transition = 'all 0.3s ease';
+
+                            window.setTimeout(function () {
+                                rowEl.remove();
+
+                                refreshCoupon().catch(function () {
+                                    updateCartSummary();
+                                });
+
+                                if (!document.querySelectorAll('.cart-item-row').length) {
+                                    var cartContent = document.getElementById('cartContent');
+                                    var cartEmpty = document.getElementById('cartEmpty');
+
+                                    if (cartContent) {
+                                        cartContent.classList.add('hidden');
+                                    }
+
+                                    if (cartEmpty) {
+                                        cartEmpty.classList.remove('hidden');
+                                    }
+                                }
+                            }, 300);
+
+                            showToast('Removed', 'Item removed from cart.', 'success');
+                        })
+                        .catch(function () {
+                            showToast('Error', 'Something went wrong.', 'error');
+                        })
+                        .finally(function () {
+                            setControlsBusy(controls, false);
+                        });
+                }
+
+                document.addEventListener('click', function (event) {
+                    var target = event.target;
+                    if (!(target instanceof Element)) return;
+
+                    var plusButton = target.closest('.cart-qty-plus');
+                    if (plusButton) {
+                        event.preventDefault();
+                        updateQuantity(plusButton, 1);
+                        return;
+                    }
+
+                    var minusButton = target.closest('.cart-qty-minus');
+                    if (minusButton) {
+                        event.preventDefault();
+                        updateQuantity(minusButton, -1);
+                        return;
+                    }
+
+                    var deleteButton = target.closest('.cart-qty-delete');
+                    if (deleteButton) {
+                        event.preventDefault();
+                        removeCartItem(deleteButton);
+                    }
+                });
+
+                document.querySelectorAll('.cart-wishlist').forEach(function (button) {
+                    button.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (button.disabled) return;
+
+                        var variantId = Number.parseInt(button.dataset.variantId, 10);
+                        var inWishlist = button.dataset.inWishlist === 'true';
+                        var wishlistItemId = button.dataset.wishlistId;
+                        var icon = button.querySelector('svg');
+
+                        button.disabled = true;
+
+                        var request = inWishlist
+                            ? window.auth.authFetch('/wishlist/' + wishlistItemId, { method: 'DELETE' })
+                            : window.auth.authFetch('/wishlist', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ product_variant_id: variantId })
+                            });
+
+                        request
+                            .then(responseWithBody)
+                            .then(function (result) {
+                                if (!result.ok) {
+                                    showToast(
+                                        'Error',
+                                        errorMessage(result, inWishlist ? 'Failed to remove from wishlist.' : 'Failed to add to wishlist.'),
+                                        'error'
+                                    );
+                                    return;
+                                }
+
+                                button.dataset.inWishlist = String(!inWishlist);
+                                if (icon) icon.setAttribute('fill', inWishlist ? 'none' : 'currentColor');
+                                if (!inWishlist && result.body && result.body.id != null) {
+                                    button.dataset.wishlistId = result.body.id;
+                                }
+
+                                showToast(
+                                    inWishlist ? 'Removed' : 'Added to Wishlist',
+                                    inWishlist ? 'Item removed from wishlist.' : 'Item added to your wishlist.',
+                                    inWishlist ? 'info' : 'success'
+                                );
+
+                                if (typeof window.updateWishlistBadge === 'function') {
+                                    window.updateWishlistBadge();
+                                }
+                            })
+                            .catch(function () {
+                                showToast('Error', 'Something went wrong.', 'error');
+                            })
+                            .finally(function () {
+                                button.disabled = false;
+                            });
+                    });
+                });
+
+                var promoTrigger = document.getElementById('promoTrigger');
+                var promoModal = document.getElementById('promoModal');
+                var closePromo = document.getElementById('closePromo');
+                var promoCodeInput = document.getElementById('promoCode');
+                var applyPromoBtn = document.getElementById('applyPromo');
+                var appliedCouponEl = document.getElementById('appliedCoupon');
+                var appliedCouponCodeEl = document.getElementById('appliedCouponCode');
+                var removeCouponBtn = document.getElementById('removeCoupon');
+                var currentCoupon = null;
+
+                if (promoTrigger && promoModal) {
+                    promoTrigger.addEventListener('click', function () {
+                        promoModal.classList.remove('hidden');
+                        promoModal.classList.add('flex');
+                    });
+                }
+
+                if (closePromo && promoModal) {
+                    closePromo.addEventListener('click', function () {
+                        promoModal.classList.remove('flex');
+                        promoModal.classList.add('hidden');
+                    });
+                }
+
+                if (promoModal) {
+                    promoModal.addEventListener('click', function (event) {
+                        if (event.target === promoModal) {
+                            promoModal.classList.remove('flex');
+                            promoModal.classList.add('hidden');
+                        }
+                    });
+                }
+
+                function calculateCartTotal() {
+                    var cartTotal = 0;
+                    var originalTotal = 0;
+
+                    document.querySelectorAll('.cart-item-row').forEach(function (row) {
+                        var priceEl = row.querySelector('.cart-item-price');
+                        var quantityEl = row.querySelector('.cart-qty');
+                        var basePriceEl = row.querySelector('.cart-item-base-price');
+
+                        if (!priceEl || !quantityEl) return;
+
+                        var price = parseAmount(priceEl.dataset.price);
+                        var basePrice = basePriceEl ? parseAmount(basePriceEl.dataset.basePrice) : price;
+                        var quantity = Number.parseInt(quantityEl.textContent, 10) || 0;
+
+                        cartTotal += price * quantity;
+                        originalTotal += basePrice * quantity;
+                    });
+
+                    return { cartTotal: cartTotal, originalTotal: originalTotal };
+                }
+
+                function refreshCoupon() {
+                    if (!currentCoupon) {
+                        updateCartSummary();
+                        return Promise.resolve();
+                    }
+
+                    var totals = calculateCartTotal();
+
+                    return window.auth.authFetch('/coupons/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            code: currentCoupon.coupon.code,
+                            cart_total: totals.cartTotal
+                        })
+                    })
+                        .then(responseWithBody)
+                        .then(function (result) {
+
+                            if (!result.ok || !result.body.valid) {
+                                // Coupon became invalid
+                                currentCoupon = null;
+
+                                var promoTrigger = document.getElementById('promoTrigger');
+                                var appliedCouponEl = document.getElementById('appliedCoupon');
+                                var promoDiscountRow = document.getElementById('promoDiscountRow');
+
+                                if (promoTrigger) {
+                                    promoTrigger.classList.remove('hidden');
+                                }
+
+                                if (appliedCouponEl) {
+                                    appliedCouponEl.classList.add('hidden');
+                                }
+
+                                if (promoDiscountRow) {
+                                    promoDiscountRow.classList.add('hidden');
+                                }
+
+                                updateCartSummary();
+                                return;
+                            }
+
+                            currentCoupon = result.body;
+
+                            var promoDiscountValue = document.getElementById('promoDiscountValue');
+
+                            if (promoDiscountValue) {
+                                promoDiscountValue.textContent =
+                                    '-₹' + Math.round(result.body.discount_amount).toLocaleString('en-IN');
+                            }
+
+                            updateCartSummary();
+                        });
+                }
+
+                function applyCouponToUI(coupon) {
+                    currentCoupon = coupon;
+                    var promoTrigger = document.getElementById('promoTrigger');
+                    var appliedCouponEl = document.getElementById('appliedCoupon');
+                    var appliedCouponCodeEl = document.getElementById('appliedCouponCode');
+                    var promoDiscountRow = document.getElementById('promoDiscountRow');
+                    var promoDiscountValue = document.getElementById('promoDiscountValue');
+
+                    if (promoTrigger) promoTrigger.classList.add('hidden');
+                    if (appliedCouponEl && appliedCouponCodeEl) {
+                        appliedCouponCodeEl.textContent = coupon.coupon.code;
+                        appliedCouponEl.classList.remove('hidden');
+                    }
+
+                    if (promoDiscountRow && promoDiscountValue) {
+                        var discount = coupon.discount_amount || 0;
+                        promoDiscountValue.textContent = '-' + '₹' + Math.round(discount).toLocaleString('en-IN');
+                        promoDiscountRow.classList.remove('hidden');
+                    }
+
+                    if (promoModal) {
+                        promoModal.classList.remove('flex');
+                        promoModal.classList.add('hidden');
+                    }
+                    if (promoCodeInput) {
+                        promoCodeInput.value = '';
+                    }
+                    updateCartSummary();
+                    showToast('Success', coupon.message, 'success');
+                }
+
+                function showCouponError(message) {
+                    showToast('Error', message, 'error');
+                }
+
+                if (applyPromoBtn) {
+                    applyPromoBtn.addEventListener('click', function () {
+                        var code = (promoCodeInput ? promoCodeInput.value : '').trim();
+                        if (!code) {
+                            showCouponError('Please enter a coupon code.');
+                            return;
+                        }
+
+                        var totals = calculateCartTotal();
+                        applyPromoBtn.disabled = true;
+                        applyPromoBtn.textContent = 'Applying...';
+
+                        window.auth.authFetch('/coupons/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: code, cart_total: totals.cartTotal })
+                        })
+                            .then(responseWithBody)
+                            .then(function (result) {
+                                if (!result.ok) {
+                                    showCouponError(errorMessage(result, 'Failed to verify coupon.'));
+                                    return;
+                                }
+                                if (!result.body.valid) {
+                                    showCouponError(result.body.message || 'Invalid coupon.');
+                                    return;
+                                }
+                                applyCouponToUI(result.body);
+                            })
+                            .catch(function () {
+                                showCouponError('Something went wrong.');
+                            })
+                            .finally(function () {
+                                applyPromoBtn.disabled = false;
+                                applyPromoBtn.textContent = 'Apply';
+                            });
+                    });
+                }
+
+                if (removeCouponBtn) {
+                    removeCouponBtn.addEventListener('click', function () {
+                        currentCoupon = null;
+                        var promoTrigger = document.getElementById('promoTrigger');
+                        var appliedCouponEl = document.getElementById('appliedCoupon');
+                        var promoDiscountRow = document.getElementById('promoDiscountRow');
+
+                        if (appliedCouponEl) {
+                            appliedCouponEl.classList.add('hidden');
+                        }
+                        if (promoTrigger) {
+                            promoTrigger.classList.remove('hidden');
+                        }
+                        if (promoDiscountRow) {
+                            promoDiscountRow.classList.add('hidden');
+                        }
+                        updateCartSummary();
+                    });
+                }
+
+                updateCartSummary();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCart, { once: true });
+            } else {
+                initCart();
+            }
+
+
+        })();
+
+    </script>
+</body>
+
+</html>

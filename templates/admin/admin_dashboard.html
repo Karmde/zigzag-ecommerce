@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | zigzag</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        .modal-scroll::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .modal-scroll::-webkit-scrollbar-track {
+            background: white;
+            border-radius: 9999px;
+        }
+
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: rgb(27, 26, 26);
+            border-radius: 9999px;
+            border: 2px solid white;
+        }
+
+        .modal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        .modal-scroll::-webkit-scrollbar-thumb:active {
+            background: #374151;
+        }
+
+        .coupon-check-item.selected {
+            background-color: black;
+            color: white;
+            border-radius: 0.5rem;
+        }
+
+        .coupon-check-item.selected input[type="checkbox"] {
+            accent-color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .nav-link {
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header id="admin-header" class="bg-white border-b border-gray-400">
+        <div class="max-w-screen-2xl mx-auto flex items-center px-6 lg:px-8 py-6">
+
+            <!-- Brand -->
+            <a href="/" class="flex items-center select-none ml-6">
+                <img src="/images/zig_zag_logo.png" alt="ZigZag Logo" class="h-10 w-auto">
+
+                <div class="mx-4 h-8 w-px bg-gray-300"></div>
+
+                <span class="text-lg font-semibold uppercase tracking-[0.2em] text-gray-600">
+                    Admin
+                </span>
+            </a>
+
+        </div>
+    </header>
+    <div class="w-[80%] mx-auto py-6">
+        <div class="flex gap-6">
+
+            <!-- Left Section (Admin Sidebar) -->
+            <div class="w-[25%] bg-white border border-gray-300 rounded-lg p-4">
+
+                <nav class="space-y-2">
+
+                    <a href="#overview"
+                        class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 transition"
+                        data-tab="overview">
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                        <span>Overview</span>
+                    </a>
+
+                    <a href="#products"
+                        class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 transition"
+                        data-tab="products">
+                        <i class="fa-solid fa-box w-5 text-center"></i>
+                        <span>Products</span>
+                    </a>
+
+                    <a href="#categories"
+                        class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 transition"
+                        data-tab="categories">
+                        <i class="fa-solid fa-layer-group w-5 text-center"></i>
+                        <span>Categories</span>
+                    </a>
+
+                    <a href="#customers"
+                        class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 transition"
+                        data-tab="customers">
+                        <i class="fa-solid fa-users w-5 text-center"></i>
+                        <span>Customers</span>
+                    </a>
+
+                    <a href="#coupons"
+                        class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 transition"
+                        data-tab="coupons">
+                        <i class="fa-solid fa-ticket w-5 text-center"></i>
+                        <span>Coupons</span>
+                    </a>
+
+                    <a href="#settings"
+                        class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 transition"
+                        data-tab="settings">
+                        <i class="fa-solid fa-gear w-5 text-center"></i>
+                        <span>Settings</span>
+                    </a>
+
+                </nav>
+
+            </div>
+
+            <!-- Right Section -->
+            <div class="flex-1 bg-white border border-gray-300 rounded-lg p-6">
+
+                <!-- Overview Tab -->
+                <div id="tab-overview" class="tab-content">
+                    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-black">
+                                Overview
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Dashboard summary and analytics.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-3 gap-5">
+                            <div class="rounded-xl border border-gray-200 bg-white p-5 text-center">
+                                <p class="text-sm text-gray-500">Total Products</p>
+                                <p class="mt-2 text-2xl font-bold text-black">1,234</p>
+                            </div>
+                            <div class="rounded-xl border border-gray-200 bg-white p-5 text-center">
+                                <p class="text-sm text-gray-500">Total Orders</p>
+                                <p class="mt-2 text-2xl font-bold text-black">5,678</p>
+                            </div>
+                            <div class="rounded-xl border border-gray-200 bg-white p-5 text-center">
+                                <p class="text-sm text-gray-500">Revenue</p>
+                                <p class="mt-2 text-2xl font-bold text-black">₹2,45,000</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Tab -->
+                <div id="tab-products" class="tab-content">
+                    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-black">
+                                Products
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Manage your product catalog.
+                            </p>
+                        </div>
+                        <a href="/admin/add-product"
+                            class="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+                            Add Product
+                        </a>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-500">Product management content here.</p>
+                    </div>
+                </div>
+
+                <!-- Categories Tab -->
+                <div id="tab-categories" class="tab-content">
+                    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-black">
+                                Categories
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Organize products into categories.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-500">Category management content here.</p>
+                    </div>
+                </div>
+
+                <!-- Customers Tab -->
+                <div id="tab-customers" class="tab-content active">
+                    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-black">
+                                Users
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Manage registered users.
+                            </p>
+                        </div>
+
+                        <input type="text" placeholder="Search by email/id..."
+                            class="w-72 h-11 px-4 rounded-lg border border-gray-300 outline-none focus:border-black transition">
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+
+                            <thead class="bg-gray-50">
+                                <tr class="text-left text-sm uppercase tracking-wide text-gray-600">
+                                    <th class="px-6 py-4 font-semibold">ID</th>
+                                    <th class="px-6 py-4 font-semibold">Email</th>
+                                    <th class="px-6 py-4 font-semibold">Status</th>
+                                    <th class="px-6 py-4 font-semibold text-center">Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+                                    <td class="px-6 py-5 font-medium text-gray-900">
+                                        #0001
+                                    </td>
+
+                                    <td class="px-6 py-5 text-gray-700">
+                                        john@example.com
+                                    </td>
+
+                                    <td class="px-6 py-5">
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+                                            ● Active
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-5 text-center">
+                                        <button
+                                            class="view-user-btn rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+                                    <td class="px-6 py-5 font-medium text-gray-900">
+                                        #0002
+                                    </td>
+
+                                    <td class="px-6 py-5 text-gray-700">
+                                        jane@example.com
+                                    </td>
+
+                                    <td class="px-6 py-5">
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
+                                            ● Blocked
+                                        </span>
+                                    </td>
+
+                                    <td class="px-6 py-5 text-center">
+                                        <button
+                                            class="view-user-btn rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Coupons Tab -->
+                <div id="tab-coupons" class="tab-content">
+                    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-black">
+                                Coupons
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Manage discount coupons and promotions.
+                            </p>
+                        </div>
+                        <button id="openCouponModal"
+                            class="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+                            Add coupon
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr class="text-left text-sm uppercase tracking-wide text-gray-600">
+                                        <th class="px-6 py-4 font-semibold">Code</th>
+                                        <th class="px-6 py-4 font-semibold">Type</th>
+                                        <th class="px-6 py-4 font-semibold">Value</th>
+                                        <th class="px-6 py-4 font-semibold">Usage</th>
+                                        <th class="px-6 py-4 font-semibold">Status</th>
+                                        <th class="px-6 py-4 font-semibold text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="couponsTableBody">
+                                    <tr class="border-t border-gray-200">
+                                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading coupons...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="tab-settings" class="tab-content">
+                    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-black">
+                                Settings
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Configure application settings.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-500">Settings content here.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="user-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-6 backdrop-blur-sm">
+
+        <!-- Modal -->
+        <div
+            class="flex max-h-[calc(95vh-3rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-gray-200 px-8 py-6">
+
+                <div class="flex items-center gap-5">
+
+                    <!-- Avatar -->
+                    <div
+                        class="flex h-16 w-16 items-center justify-center rounded-full bg-black text-2xl font-semibold text-white">
+                        JD
+                    </div>
+
+                    <div>
+
+                        <h2 class="text-2xl font-semibold text-black">
+                            John Doe
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            Customer Account Details
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <button id="close-modal"
+                    class="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-black">
+                    ✕
+                </button>
+
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="modal-scroll flex-1 overflow-y-auto">
+
+                <!-- User Information -->
+                <div class="grid grid-cols-2 gap-5 p-8">
+
+                    <!-- User ID -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">User ID</p>
+                        <p class="mt-1 text-lg font-semibold text-black">
+                            #0001
+                        </p>
+                    </div>
+
+                    <!-- Provider -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Provider</p>
+
+                        <span
+                            class="mt-2 inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
+                            Google
+                        </span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Email</p>
+
+                        <p class="mt-1 font-semibold text-black">
+                            john@example.com
+                        </p>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Phone</p>
+
+                        <p class="mt-1 font-semibold text-black">
+                            +91 9876543210
+                        </p>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Status</p>
+
+                        <span
+                            class="mt-2 inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                            Active
+                        </span>
+                    </div>
+
+                    <!-- Role -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Role</p>
+
+                        <span
+                            class="mt-2 inline-flex rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-black">
+                            Customer
+                        </span>
+                    </div>
+
+                    <!-- Joined On -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Joined On</p>
+
+                        <p class="mt-1 font-semibold text-black">
+                            11 Jul 2026
+                        </p>
+                    </div>
+
+                    <!-- Last Login -->
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Last Login</p>
+
+                        <p class="mt-1 font-semibold text-black">
+                            10 Jul 2026 • 08:45 PM
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Statistics -->
+                <div class="border-t border-gray-200 px-8 py-6">
+
+                    <h3 class="mb-5 text-lg font-semibold text-black">
+                        Statistics
+                    </h3>
+
+                    <div class="grid grid-cols-3 gap-5">
+
+                        <!-- Orders -->
+                        <div class="rounded-xl border border-gray-200 bg-white p-5 text-center">
+
+                            <p class="text-sm text-gray-500">
+                                Orders
+                            </p>
+
+                            <p class="mt-2 text-2xl font-bold text-black">
+                                18
+                            </p>
+
+                        </div>
+
+                        <!-- Total Spent -->
+                        <div class="rounded-xl border border-gray-200 bg-white p-5 text-center">
+
+                            <p class="text-sm text-gray-500">
+                                Total Spent
+                            </p>
+
+                            <p class="mt-2 text-2xl font-bold text-black">
+                                ₹42,560
+                            </p>
+
+                        </div>
+
+                        <!-- Wishlist -->
+                        <div class="rounded-xl border border-gray-200 bg-white p-5 text-center">
+
+                            <p class="text-sm text-gray-500">
+                                Wishlist
+                            </p>
+
+                            <p class="mt-2 text-2xl font-bold text-black">
+                                12
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 border-t border-gray-200 bg-white px-8 py-5">
+
+                <button class="rounded-lg border border-gray-300 px-5 py-2.5 font-medium transition hover:bg-gray-100">
+                    Close
+                </button>
+
+                <button class="rounded-lg bg-black px-5 py-2.5 font-medium text-white transition hover:bg-gray-800">
+                    Edit User
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- add cpupon modal -->
+    <!-- Overlay -->
+    <div id="couponModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+
+        <!-- Modal -->
+        <div class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+
+            <!-- Header -->
+            <div class="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+
+                <div>
+                    <h2 class="text-xl font-bold text-black">
+                        Create Coupon
+                    </h2>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Create a new coupon for your customers.
+                    </p>
+                </div>
+
+                <button id="closeCouponModal"
+                    class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-black">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form class="space-y-8 p-6">
+
+                <!-- ========================= -->
+                <!-- Basic Information -->
+                <!-- ========================= -->
+
+                <section class="space-y-6">
+
+                    <!-- Section Heading -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-black">
+                            Basic Information
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Configure the basic details for your coupon.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-6 lg:grid-cols-3">
+
+                        <!-- Left Side -->
+                        <div class="space-y-6 lg:col-span-2">
+
+                            <!-- Coupon Code -->
+                            <div>
+                                <div class="mb-2 flex items-center justify-between">
+                                    <label class="text-sm font-medium text-gray-700">
+                                        Coupon Code <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <span class="text-xs text-gray-400">
+                                        Must be unique
+                                    </span>
+                                </div>
+
+                                <div class="flex gap-3">
+
+                                    <input type="text" id="couponCode" placeholder="WELCOME10"
+                                        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase outline-none transition-all placeholder:text-gray-400 focus:border-black focus:ring-2 focus:ring-black/10">
+
+                                    <button type="button" id="generateCodeBtn"
+                                        class="rounded-xl border border-black px-5 py-3 text-sm font-medium transition hover:bg-black hover:text-white active:scale-[0.98]">
+
+                                        Generate
+
+                                    </button>
+
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div>
+
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Description
+                                </label>
+
+                                <textarea id="couponDescription" rows="4" placeholder="Example: Get 10% OFF on orders above ₹999."
+                                    class="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-black focus:ring-2 focus:ring-black/10"></textarea>
+
+                                <p class="mt-2 text-xs text-gray-500">
+                                    This description can help administrators identify the purpose of the coupon.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Right Side -->
+                        <div>
+
+                            <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+
+                                <div class="flex items-start justify-between">
+
+                                    <div>
+
+                                        <h4 class="font-semibold text-black">
+                                            Coupon Status
+                                        </h4>
+
+                                        <p class="mt-1 text-sm text-gray-500">
+                                            Enable or disable this coupon.
+                                        </p>
+
+                                    </div>
+
+                                    <!-- Keep your existing status exactly as it is -->
+                                    <label class="inline-flex cursor-pointer items-center">
+                                        <input type="checkbox" name="is_active" class="peer sr-only" checked>
+
+                                        <div class="peer relative h-6 w-11 rounded-full bg-gray-300 transition-all
+                                                   after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5
+                                                   after:rounded-full after:bg-white after:transition-all
+                                                   peer-checked:bg-black
+                                                   peer-checked:after:translate-x-5">
+                                        </div>
+
+                                        <span class="ml-3 text-sm font-medium text-gray-700">
+                                            Active
+                                        </span>
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ========================= -->
+                <!-- Discount -->
+                <!-- ========================= -->
+
+                <section class="space-y-6">
+
+                    <!-- Section Header -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-black">
+                            Discount
+                        </h3>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            Choose how the coupon discount should be applied.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-6 lg:grid-cols-3">
+
+                        <!-- Left -->
+                        <div class="space-y-6 lg:col-span-2">
+
+                            <!-- Discount Type -->
+                            <div>
+
+                                <label class="mb-3 block text-sm font-medium text-gray-700">
+                                    Discount Type
+                                </label>
+
+                                <div id="discountTypes"
+                                    class="grid grid-cols-3 rounded-xl border border-gray-300 p-1 gap-3">
+
+                                    <button type="button" data-type="percentage"
+                                        class="discount-btn rounded-lg bg-black px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 transition">
+                                        Percentage
+                                    </button>
+
+                                    <button type="button" data-type="fixed"
+                                        class="discount-btn rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
+                                        Fixed Amount
+                                    </button>
+
+                                    <button type="button" data-type="shipping"
+                                        class="discount-btn rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
+                                        Free Shipping
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <!-- Discount Value -->
+                            <div>
+
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Discount Value
+                                </label>
+
+                                <div class="relative">
+
+                                    <span id="discountPrefix"
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                                        %
+                                    </span>
+
+                                    <input type="number" id="couponDiscountValue" placeholder="10"
+                                        class="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-black focus:ring-2 focus:ring-black/10">
+
+                                </div>
+
+                            </div>
+
+                            <!-- Maximum Discount -->
+                            <div id="maxDiscountContainer"
+                                class="overflow-hidden transition-all duration-300 ease-in-out max-h-96 opacity-100">
+
+                                <div class="mb-2 flex items-center justify-between">
+
+                                    <label class="text-sm font-medium text-gray-700">
+                                        Maximum Discount
+                                    </label>
+
+                                </div>
+
+                                <div class="relative">
+
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                                        ₹
+                                    </span>
+
+                                    <input id="couponMaxDiscount" type="number" placeholder="500"
+                                        class="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-black focus:ring-2 focus:ring-black/10">
+
+                                </div>
+
+                                <p class="mt-2 text-xs text-gray-500">
+                                    Caps the maximum amount the customer can save.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Right -->
+                        <div>
+
+                            <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+
+                                <h4 class="font-semibold text-black">
+                                    Preview
+                                </h4>
+
+                                <div id="previewValue" class="mt-6 text-center text-5xl font-bold">
+                                    10%
+                                </div>
+
+                                <div id="previewLabel" class="mt-2 text-center text-gray-500">
+                                    OFF
+                                </div>
+
+                                <div id="previewMax" class="mt-6 border-t pt-4 text-center">
+
+                                    <div class="text-xs text-gray-500">
+                                        Maximum Discount
+                                    </div>
+
+                                    <div class="font-semibold">
+                                        ₹500
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ========================= -->
+                <!-- Eligibility -->
+                <!-- ========================= -->
+
+                <section class="space-y-6">
+
+                    <!-- Section Header -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-black">
+                            Eligibility
+                        </h3>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            Choose where this coupon can be used and define any purchase requirements.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-6 lg:grid-cols-3">
+
+                        <!-- Left Side -->
+                        <div class="space-y-6 lg:col-span-2">
+
+                            <!-- Minimum Cart Amount -->
+                            <div>
+
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Minimum Cart Amount
+                                </label>
+
+                                <div class="relative">
+
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                                        ₹
+                                    </span>
+
+                                    <input id="couponMinAmount" type="number" placeholder="999"
+                                        class="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-black focus:ring-2 focus:ring-black/10">
+
+                                </div>
+
+                                <p class="mt-2 text-xs text-gray-500">
+                                    Leave empty or enter <strong>0</strong> for no minimum purchase.
+                                </p>
+
+                            </div>
+
+                            <!-- Applicable On -->
+                            <div>
+
+                                <label class="mb-3 block text-sm font-medium text-gray-700">
+                                    Applicable On
+                                </label>
+
+                                <div id="applicableSelector"
+                                    class="grid grid-cols-3 rounded-xl border border-gray-300 p-1 gap-2">
+
+                                    <button type="button" data-target="store"
+                                        class="applicable-btn rounded-lg bg-black px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 transition">
+                                        Entire Store
+                                    </button>
+
+                                    <button type="button" data-target="categories"
+                                        class="applicable-btn rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
+                                        Categories
+                                    </button>
+
+                                    <button type="button" data-target="products"
+                                        class="applicable-btn rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
+                                        Products
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <!-- Categories -->
+                            <div id="categoryContainer" class="hidden overflow-hidden transition-all duration-300">
+
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Categories
+                                </label>
+
+                                <input type="text" id="categorySearch" placeholder="Search categories..."
+                                    class="mb-3 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/10">
+
+                                <div id="categoryList" class="max-h-52 space-y-2 overflow-y-auto rounded-xl border border-gray-300 p-4">
+
+                            </div>
+
+                            <!-- Products -->
+                            <div id="productContainer" class="hidden overflow-hidden transition-all duration-300">
+
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Products
+                                </label>
+
+                                <input type="text" id="productSearch" placeholder="Search products..."
+                                    class="mb-3 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/10">
+
+                                <div id="productList" class="max-h-52 space-y-2 overflow-y-auto rounded-xl border border-gray-300 p-4">
+
+                            </div>
+
+                        </div>
+
+                        <!-- Right Side -->
+                        <div>
+
+                            <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+
+                                <h4 class="font-semibold text-black">
+                                    Eligibility Summary
+                                </h4>
+
+                                <div class="mt-5 space-y-4 text-sm">
+
+                                    <div>
+                                        <p class="text-gray-500">Minimum Cart</p>
+                                        <p id="minCartDisplay" class="font-semibold text-black">₹0</p>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-gray-500">Applicable To</p>
+                                        <p id="eligibilityPreview" class="font-semibold text-black">
+                                            Entire Store
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-gray-500">Selected Items</p>
+                                        <p id="selectedCount" class="font-semibold text-black">
+                                            All Products
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ========================= -->
+                <!-- Validity -->
+                <!-- ========================= -->
+
+                <section>
+
+                    <h3 class="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-black">
+                        Validity
+                    </h3>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                Start Date
+                            </label>
+
+                            <input type="datetime-local" id="couponStartDate"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-black">
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                End Date
+                            </label>
+
+                            <input type="datetime-local" id="couponEndDate"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-black">
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ========================= -->
+                <!-- Usage -->
+                <!-- ========================= -->
+
+                <section>
+
+                    <h3 class="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-black">
+                        Usage Limits
+                    </h3>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                Total Usage Limit
+                            </label>
+
+                            <input type="number" id="couponUsageLimit" placeholder="Leave empty for unlimited"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-black">
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                Usage Per User
+                            </label>
+
+                            <input type="number" id="couponUsagePerUser" value="1"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-black">
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- Footer -->
+
+                <div class="sticky bottom-0 flex justify-end gap-3 border-t border-gray-200 bg-white pt-5">
+
+                    <button id="cancelCouponModal" type="button"
+                        class="rounded-lg border border-gray-300 px-5 py-2.5 font-medium hover:bg-gray-100">
+
+                        Cancel
+
+                    </button>
+
+                    <button type="submit"
+                        class="rounded-lg bg-black px-6 py-2.5 font-medium text-white transition hover:bg-gray-800">
+
+                        Save Coupon
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+    <script src="\js\auth.js"></script>
+    <script>
+        const navLinks = document.querySelectorAll('.nav-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        function switchTab(tabName) {
+            tabContents.forEach(content => content.classList.remove('active'));
+            navLinks.forEach(link => {
+                link.classList.remove('bg-black', 'text-white', 'font-medium');
+                link.classList.add('text-gray-700', 'hover:bg-gray-200');
+            });
+
+            const targetContent = document.getElementById('tab-' + tabName);
+            const targetLink = document.querySelector('.nav-link[data-tab="' + tabName + '"]');
+
+            if (targetContent) targetContent.classList.add('active');
+            if (targetLink) {
+                targetLink.classList.remove('text-gray-700', 'hover:bg-gray-200');
+                targetLink.classList.add('bg-black', 'text-white', 'font-medium');
+            }
+
+            if (tabName && history.replaceState) {
+                history.replaceState(null, null, '#' + tabName);
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+                if (tabName === 'coupons') {
+                    loadCoupons();
+                }
+            });
+        });
+
+        const initialTab = window.location.hash.replace('#', '');
+        if (initialTab && document.getElementById('tab-' + initialTab)) {
+            switchTab(initialTab);
+            if (initialTab === 'coupons') loadCoupons();
+        } else if (!initialTab) {
+            switchTab('customers');
+        }
+
+        window.addEventListener('popstate', function () {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && document.getElementById('tab-' + hash)) {
+                switchTab(hash);
+            }
+        });
+
+
+        // coupan modal script
+        const modal = document.getElementById("couponModal");
+        const couponForm = document.querySelector('#couponModal form');
+        let editingCouponId = null;
+
+        document.getElementById('openCouponModal')?.addEventListener('click', function () {
+            editingCouponId = null;
+            if (couponForm) couponForm.reset();
+            resetCouponModalTabs();
+            updateDiscountPreview();
+            updateEligibilitySummary();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        });
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        document.getElementById("closeCouponModal").addEventListener("click", closeModal);
+        document.getElementById("cancelCouponModal").addEventListener("click", closeModal);
+
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeModal();
+            }
+        });
+
+        function resetCouponModalTabs() {
+            const discountButtons = document.querySelectorAll('.discount-btn');
+            discountButtons.forEach(btn => {
+                btn.classList.remove('bg-black', 'text-white', 'hover:bg-gray-800');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            const defaultDiscountBtn = document.querySelector('.discount-btn[data-type="percentage"]');
+            if (defaultDiscountBtn) {
+                defaultDiscountBtn.classList.add('bg-black', 'text-white', 'hover:bg-gray-800');
+                defaultDiscountBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            }
+
+            const applicableButtons = document.querySelectorAll('.applicable-btn');
+            applicableButtons.forEach(btn => {
+                btn.classList.remove('bg-black', 'text-white', 'hover:bg-gray-800');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            const defaultApplicableBtn = document.querySelector('.applicable-btn[data-target="store"]');
+            if (defaultApplicableBtn) {
+                defaultApplicableBtn.classList.add('bg-black', 'text-white', 'hover:bg-gray-800');
+                defaultApplicableBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            }
+
+            const categoryContainer = document.getElementById('categoryContainer');
+            const productContainer = document.getElementById('productContainer');
+            if (categoryContainer) categoryContainer.classList.add('hidden');
+            if (productContainer) productContainer.classList.add('hidden');
+        }
+
+        if (couponForm) {
+            couponForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const code = document.getElementById('couponCode').value.trim().toUpperCase();
+                const description = document.getElementById('couponDescription').value.trim();
+                const discountType = document.querySelector('.discount-btn.bg-black')?.dataset.type || 'percentage';
+                const discountValue = parseFloat(document.getElementById('couponDiscountValue').value) || 0;
+                const minimumCartAmount = parseFloat(document.getElementById('couponMinAmount').value) || 0;
+                const maxDiscountVal = document.getElementById('couponMaxDiscount').value;
+                const maximumDiscount = maxDiscountVal ? parseFloat(maxDiscountVal) : null;
+                const startDate = document.getElementById('couponStartDate').value;
+                const endDate = document.getElementById('couponEndDate').value;
+                const usageLimitVal = document.getElementById('couponUsageLimit').value;
+                const usageLimit = usageLimitVal ? parseInt(usageLimitVal, 10) : null;
+                const usagePerUser = parseInt(document.getElementById('couponUsagePerUser').value, 10) || 1;
+                const isActive = document.querySelector('input[name="is_active"]')?.checked ?? true;
+
+                if (!endDate) {
+                    alert('Please select an end date.');
+                    return;
+                }
+
+                const payload = {
+                    code,
+                    description: description || null,
+                    discount_type: discountType,
+                    discount_value: discountValue,
+                    minimum_cart_amount: minimumCartAmount,
+                    maximum_discount: maximumDiscount,
+                    start_date: startDate || null,
+                    end_date: endDate || null,
+                    usage_limit: usageLimit,
+                    usage_per_user: usagePerUser,
+                    is_active: isActive,
+                    product_ids: [],
+                    category_ids: []
+                };
+
+                const url = editingCouponId ? '/coupons/' + editingCouponId : '/coupons';
+                const method = editingCouponId ? 'PUT' : 'POST';
+
+                try {
+                    const res = await window.auth.authFetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json().catch(() => null);
+                    if (!res.ok) {
+                        alert(data?.detail || 'Failed to save coupon.');
+                        return;
+                    }
+                    closeModal();
+                    loadCoupons();
+                } catch (err) {
+                    alert('Something went wrong while saving the coupon.');
+                }
+            });
+        }
+
+        const discountButtons = document.querySelectorAll('.discount-btn');
+        const applicableButtons = document.querySelectorAll('.applicable-btn');
+        const categoryContainer = document.getElementById('categoryContainer');
+        const productContainer = document.getElementById('productContainer');
+        const eligibilityPreview = document.getElementById('eligibilityPreview');
+        const selectedCount = document.getElementById('selectedCount');
+        const discountValueInput = document.getElementById('couponDiscountValue');
+        const maxDiscountInput = document.getElementById('couponMaxDiscount');
+        const maxDiscountContainer = document.getElementById('maxDiscountContainer');
+        const previewValue = document.getElementById('previewValue');
+        const previewLabel = document.getElementById('previewLabel');
+        const previewMax = document.getElementById('previewMax');
+        const categorySearch = document.getElementById('categorySearch');
+        const productSearch = document.getElementById('productSearch');
+
+        function updateDiscountPreview() {
+            if (!previewValue || !previewLabel || !previewMax) return;
+            const activeBtn = document.querySelector('.discount-btn.bg-black');
+            const type = activeBtn ? activeBtn.dataset.type : 'percentage';
+            const value = parseFloat(discountValueInput ? discountValueInput.value : 0) || 0;
+
+            if (type === 'percentage') {
+                previewValue.textContent = value + '%';
+                previewLabel.textContent = 'OFF';
+                if (previewMax) previewMax.classList.remove('hidden');
+            } else if (type === 'fixed') {
+                previewValue.textContent = '₹' + value;
+                previewLabel.textContent = 'OFF';
+                if (previewMax) previewMax.classList.add('hidden');
+            } else if (type === 'shipping') {
+                previewValue.textContent = '🚚';
+                previewLabel.textContent = 'FREE SHIPPING';
+                if (previewMax) previewMax.classList.add('hidden');
+            }
+
+            const maxVal = maxDiscountInput ? parseFloat(maxDiscountInput.value) : null;
+            if (previewMax && type === 'percentage' && maxVal) {
+                previewMax.querySelector('.font-semibold').textContent = '₹' + maxVal;
+            }
+        }
+
+        function updateEligibilitySummary() {
+            if (!eligibilityPreview || !selectedCount) return;
+            const minAmount = document.getElementById('couponMinAmount');
+            const minVal = minAmount ? parseFloat(minAmount.value) : 0;
+            const minCartDisplay = document.getElementById('minCartDisplay');
+            if (minCartDisplay) {
+                minCartDisplay.textContent = '₹' + (minVal || 0);
+            }
+            if (eligibilityPreview) {
+                eligibilityPreview.textContent = 'Entire Store';
+            }
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const checkedCategories = document.querySelectorAll('.category-checkbox:checked');
+            const checkedProducts = document.querySelectorAll('.product-checkbox:checked');
+            if (selectedCount) {
+                if (checkedCategories.length > 0) {
+                    selectedCount.textContent = checkedCategories.length + ' categories selected';
+                } else if (checkedProducts.length > 0) {
+                    selectedCount.textContent = checkedProducts.length + ' products selected';
+                } else {
+                    selectedCount.textContent = 'All Products';
+                }
+            }
+        }
+
+        discountButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                discountButtons.forEach(btn => {
+                    btn.classList.remove('bg-black', 'text-white', 'hover:bg-gray-800');
+                    btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+                });
+                button.classList.add('bg-black', 'text-white', 'hover:bg-gray-800');
+                button.classList.remove('text-gray-600', 'hover:bg-gray-100');
+
+                const type = button.dataset.type;
+                if (type === 'shipping') {
+                    discountValueInput.closest('div').parentElement.classList.add('hidden');
+                    if (maxDiscountContainer) maxDiscountContainer.classList.add('hidden');
+                } else {
+                    discountValueInput.closest('div').parentElement.classList.remove('hidden');
+                    if (maxDiscountContainer) {
+                        if (type === 'percentage') {
+                            maxDiscountContainer.classList.remove('hidden');
+                            maxDiscountInput.disabled = false;
+                        } else {
+                            maxDiscountContainer.classList.add('hidden');
+                            maxDiscountInput.disabled = true;
+                            maxDiscountInput.value = '';
+                        }
+                    }
+                }
+                updateDiscountPreview();
+            });
+        });
+
+        applicableButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                applicableButtons.forEach(btn => {
+                    btn.classList.remove('bg-black', 'text-white', 'hover:bg-gray-800');
+                    btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+                });
+                button.classList.add('bg-black', 'text-white', 'hover:bg-gray-800');
+                button.classList.remove('text-gray-600', 'hover:bg-gray-100');
+
+                categoryContainer.classList.add('hidden');
+                productContainer.classList.add('hidden');
+
+                switch (button.dataset.target) {
+                    case 'store':
+                        if (eligibilityPreview) eligibilityPreview.textContent = 'Entire Store';
+                        updateSelectedCount();
+                        break;
+                    case 'categories':
+                        categoryContainer.classList.remove('hidden');
+                        if (eligibilityPreview) eligibilityPreview.textContent = 'Selected Categories';
+                        updateSelectedCount();
+                        fetchCategories();
+                        break;
+                    case 'products':
+                        productContainer.classList.remove('hidden');
+                        if (eligibilityPreview) eligibilityPreview.textContent = 'Selected Products';
+                        updateSelectedCount();
+                        fetchProducts();
+                        break;
+                }
+            });
+        });
+
+        if (categorySearch) {
+            categorySearch.addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('.category-item').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+
+        if (productSearch) {
+            productSearch.addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+
+        document.querySelectorAll('.category-checkbox, .product-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateSelectedCount);
+        });
+
+        if (discountValueInput) {
+            discountValueInput.addEventListener('input', updateDiscountPreview);
+        }
+        if (maxDiscountInput) {
+            maxDiscountInput.addEventListener('input', updateDiscountPreview);
+        }
+
+        const couponMinAmount = document.getElementById('couponMinAmount');
+        const generateCodeBtn = document.getElementById('generateCodeBtn');
+        if (couponMinAmount) {
+            couponMinAmount.addEventListener('input', updateEligibilitySummary);
+        }
+        if (generateCodeBtn) {
+            generateCodeBtn.addEventListener('click', () => {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let code = '';
+                for (let i = 0; i < 8; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                document.getElementById('couponCode').value = code;
+            });
+        }
+
+        async function loadCoupons() {
+            const tbody = document.getElementById('couponsTableBody');
+            if (!tbody) return;
+            try {
+                const res = await window.auth.authFetch('/coupons');
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.detail || 'Failed to load coupons.');
+                tbody.innerHTML = '';
+                if (!Array.isArray(data) || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No coupons found. Click "Add coupon" to create one.</td></tr>';
+                    return;
+                }
+                data.forEach(coupon => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-t border-gray-200 hover:bg-gray-50 transition';
+                    const typeLabel = coupon.discount_type === 'percentage' ? 'Percentage' : coupon.discount_type === 'fixed' ? 'Fixed' : 'Free Shipping';
+                    const valueLabel = coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : coupon.discount_type === 'fixed' ? '₹' + coupon.discount_value : 'Free';
+                    tr.innerHTML = `
+                        <td class="px-6 py-5 font-medium text-gray-900">${coupon.code}</td>
+                        <td class="px-6 py-5 text-gray-700">${typeLabel}</td>
+                        <td class="px-6 py-5 text-gray-700">${valueLabel}</td>
+                        <td class="px-6 py-5 text-gray-700">${coupon.used_count}${coupon.usage_limit ? ' / ' + coupon.usage_limit : ''}</td>
+                        <td class="px-6 py-5">
+                            <span class="inline-flex items-center rounded-full ${coupon.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} px-3 py-1 text-sm font-medium">
+                                ${coupon.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            <button class="edit-coupon-btn rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800" data-id="${coupon.id}">Edit</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.querySelectorAll('.edit-coupon-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = parseInt(btn.dataset.id, 10);
+                        const res = await window.auth.authFetch('/coupons/' + id);
+                        const coupon = await res.json();
+                        if (!res.ok) return alert(coupon.detail || 'Failed to load coupon.');
+                        editingCouponId = id;
+                        document.getElementById('couponCode').value = coupon.code ? coupon.code.toUpperCase() : '';
+                        document.getElementById('couponDescription').value = coupon.description || '';
+                        document.getElementById('couponDiscountValue').value = coupon.discount_value || '';
+                        document.getElementById('couponMinAmount').value = coupon.minimum_cart_amount || 0;
+                        document.getElementById('couponMaxDiscount').value = coupon.maximum_discount || '';
+                        document.getElementById('couponStartDate').value = coupon.start_date ? coupon.start_date.slice(0, 16) : '';
+                        document.getElementById('couponEndDate').value = coupon.end_date ? coupon.end_date.slice(0, 16) : '';
+                        document.getElementById('couponUsageLimit').value = coupon.usage_limit || '';
+                        document.getElementById('couponUsagePerUser').value = coupon.usage_per_user || 1;
+                        const statusCheckbox = document.querySelector('input[name="is_active"]');
+                        if (statusCheckbox) statusCheckbox.checked = coupon.is_active;
+                        const statusText = statusCheckbox?.closest("label").querySelector("span");
+                        if (statusText) statusText.textContent = coupon.is_active ? "Active" : "Inactive";
+
+                        discountButtons.forEach(btn => {
+                            btn.classList.remove('bg-black', 'text-white', 'hover:bg-gray-800');
+                            btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+                        });
+                        const typeBtn = document.querySelector('.discount-btn[data-type="' + coupon.discount_type + '"]');
+                        if (typeBtn) {
+                            typeBtn.classList.add('bg-black', 'text-white', 'hover:bg-gray-800');
+                            typeBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                        }
+
+                        applicableButtons.forEach(btn => {
+                            btn.classList.remove('bg-black', 'text-white', 'hover:bg-gray-800');
+                            btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+                        });
+                        const applicableBtn = document.querySelector('.applicable-btn[data-target="store"]');
+                        if (applicableBtn) {
+                            applicableBtn.classList.add('bg-black', 'text-white', 'hover:bg-gray-800');
+                            applicableBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                        }
+
+                        if (categoryContainer) categoryContainer.classList.add('hidden');
+                        if (productContainer) productContainer.classList.add('hidden');
+
+                        updateDiscountPreview();
+                        updateEligibilitySummary();
+
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                        document.body.classList.add("overflow-hidden");
+                    });
+                });
+            } catch (err) {
+                console.error('Failed to load coupons:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Failed to load coupons: ' + err.message + '</td></tr>';
+            }
+        }
+
+        async function fetchCategories() {
+            const list = document.getElementById('categoryList');
+            if (!list) return;
+            try {
+                const res = await window.auth.authFetch('/catalog/categories');
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.detail || 'Failed to load categories.');
+                list.innerHTML = '';
+                data.forEach(cat => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center gap-3 coupon-check-item category-item cursor-pointer';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'category-checkbox';
+                    checkbox.value = cat.id;
+                    checkbox.addEventListener('change', function () {
+                        if (this.checked) {
+                            label.classList.add('selected');
+                        } else {
+                            label.classList.remove('selected');
+                        }
+                        updateSelectedCount();
+                    });
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(' ' + cat.name));
+                    list.appendChild(label);
+                });
+            } catch (err) {
+                list.innerHTML = '<div class="text-sm text-red-500">Failed to load categories.</div>';
+            }
+        }
+
+        async function fetchProducts() {
+            const list = document.getElementById('productList');
+            if (!list) return;
+            try {
+                const res = await window.auth.authFetch('/catalog/products?limit=200');
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.detail || 'Failed to load products.');
+                list.innerHTML = '';
+                (data.products || []).forEach(product => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center gap-3 coupon-check-item product-item cursor-pointer';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'product-checkbox';
+                    checkbox.value = product.id;
+                    checkbox.addEventListener('change', function () {
+                        if (this.checked) {
+                            label.classList.add('selected');
+                        } else {
+                            label.classList.remove('selected');
+                        }
+                        updateSelectedCount();
+                    });
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(' ' + product.name));
+                    list.appendChild(label);
+                });
+            } catch (err) {
+                list.innerHTML = '<div class="text-sm text-red-500">Failed to load products.</div>';
+            }
+        }
+
+        function refreshCategorySelection() {
+            document.querySelectorAll('.category-checkbox').forEach(cb => {
+                const label = cb.closest('.coupon-check-item');
+                if (cb.checked && label) {
+                    label.classList.add('selected');
+                } else if (label) {
+                    label.classList.remove('selected');
+                }
+            });
+        }
+
+        function refreshProductSelection() {
+            document.querySelectorAll('.product-checkbox').forEach(cb => {
+                const label = cb.closest('.coupon-check-item');
+                if (cb.checked && label) {
+                    label.classList.add('selected');
+                } else if (label) {
+                    label.classList.remove('selected');
+                }
+            });
+        }
+
+        if (categorySearch) {
+            categorySearch.addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('.category-item').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+
+        if (productSearch) {
+            productSearch.addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>

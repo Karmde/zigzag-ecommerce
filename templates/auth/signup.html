@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Account | ZigZag</title>
+
+    <link rel="icon" type="image/png" href="/images/zig_zag_logo.png">
+</head>
+
+<body class="bg-white">
+    {% include 'partials/header.html' %}
+
+    <div class="flex min-h-screen pt-6">
+
+        <!-- Left Side
+        <div class="hidden lg:block w-1/2 h-full overflow-hidden">
+            <img src="/images/mix_signup.png" alt="Signup" class="w-full h-full object-cover object-center">
+        </div> -->
+
+        <!-- Right Side -->
+        <div class="w-full lg:w-2/2 flex items-center justify-center px-8 lg:px-16">
+            <div class="w-full max-w-md">
+
+                <!-- Logo + Heading -->
+                <div class="flex flex-col items-center text-center mb-2">
+
+                    <!-- ZigZag Logo -->
+                    <img src="/images/zig_zag_logo.png" alt="ZigZag Logo" class="h-14 w-auto mb-4">
+
+                    <!-- Title -->
+                    <h1 class="text-4xl font-bold">
+                        Create Account
+                    </h1>
+
+                    <!-- Subtitle -->
+                    <p class="text-gray-500 mt-2 mb-8 max-w-sm">
+                        Create your account to continue.
+                    </p>
+
+                </div>
+
+                <form id="signupForm" method="POST" action="/auth/signup" class="space-y-4" novalidate
+                    autocomplete="on">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- First Name -->
+                        <div class="relative">
+                            <input type="text" id="firstname" name="firstname" placeholder=" " autocomplete="given-name"
+                                class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 focus:outline-none focus:border-black">
+                            <label for="firstname" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                                       peer-placeholder-shown:top-4
+                                       peer-placeholder-shown:text-base
+                                       peer-focus:-top-2
+                                       peer-focus:text-xs
+                                       peer-focus:text-black
+                                       top-[-8px] text-xs">
+                                First Name
+                            </label>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="relative">
+                            <input type="text" id="lastname" name="lastname" placeholder=" " autocomplete="family-name"
+                                class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 focus:outline-none focus:border-black">
+                            <label for="lastname" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                                       peer-placeholder-shown:top-4
+                                       peer-placeholder-shown:text-base
+                                       peer-focus:-top-2
+                                       peer-focus:text-xs
+                                       peer-focus:text-black
+                                       top-[-8px] text-xs">
+                                Last Name
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <!-- Email -->
+                    <div class="relative">
+                        <input type="email" id="email" name="email" placeholder=" " autocomplete="email"
+                            class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 focus:outline-none focus:border-black">
+                        <label for="email" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                            peer-placeholder-shown:top-4
+                            peer-placeholder-shown:text-base
+                            peer-focus:-top-2
+                            peer-focus:text-xs
+                            peer-focus:text-black
+                            top-[-8px] text-xs">
+                            Email Address
+                        </label>
+                    </div>
+
+                    <!-- email already in use error -->
+                    <p id="emailError" class="hidden mt-2 flex items-center gap-2 text-sm text-red-500">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M9.401 3.003c1.155-2.004 4.043-2.004 5.198 0l6.857 11.892c1.155 2.004-.289 4.505-2.599 4.505H5.143c-2.31 0-3.754-2.501-2.599-4.505L9.401 3.003zm2.599 4.247a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8a.75.75 0 01.75-.75zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                                clip-rule="evenodd" />
+                        </svg>
+
+                        <span id="emailErrorText">This email is already registered. Please sign in or use a different
+                            email.</span>
+                    </p>
+
+                    <!-- Phone Number -->
+                    <div class="relative">
+                        <input type="tel" id="phone" name="phone" maxlength="15" placeholder=" " autocomplete="tel"
+                            class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 focus:outline-none focus:border-black">
+                        <label for="phone" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                            peer-placeholder-shown:top-4
+                            peer-placeholder-shown:text-base
+                            peer-focus:-top-2
+                            peer-focus:text-xs
+                            peer-focus:text-black
+                            top-[-8px] text-xs">
+                            Phone Number
+                        </label>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="relative">
+                        <input type="password" id="password" name="password" placeholder=" " autocomplete="new-password"
+                            minlength="8" maxlength="72"
+                            class="peer w-full border border-gray-300 rounded-lg px-4 pr-12 pt-6 pb-2 focus:outline-none focus:border-black">
+
+                        <label for="password" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                            peer-placeholder-shown:top-4
+                            peer-placeholder-shown:text-base
+                            peer-focus:-top-2
+                            peer-focus:text-xs
+                            peer-focus:text-black
+                            top-[-8px] text-xs">
+                            Password
+                        </label>
+
+                        <button type="button" onclick="togglePassword('password', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black">
+
+                            <!-- Eye Icon -->
+                            <svg class="eye-open w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5
+                                    c4.478 0 8.268 2.943 9.542 7
+                                    -1.274 4.057-5.064 7-9.542 7
+                                    -4.477 0-8.268-2.943-9.542-7z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+
+                            <!-- Eye Off Icon -->
+                            <svg class="eye-closed hidden w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587A2 2 0 0012 14
+                                    a2 2 0 001.414-.586M9.88 5.09A9.953
+                                    9.953 0 0112 5c4.478 0 8.268 2.943
+                                    9.542 7a9.97 9.97 0 01-4.293 5.145M6.228
+                                    6.228A9.956 9.956 0 002.458 12
+                                    c1.274 4.057 5.064 7 9.542 7
+                                    a9.95 9.95 0 005.772-1.772" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="relative mt-4">
+                        <input type="password" id="confirm_password" placeholder=" " autocomplete="new-password"
+                            minlength="8" maxlength="72"
+                            class="peer w-full border border-gray-300 rounded-lg px-4 pr-12 pt-6 pb-2 focus:outline-none focus:border-black">
+
+                        <label for="confirm_password" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
+                            peer-placeholder-shown:top-4
+                            peer-placeholder-shown:text-base
+                            peer-focus:-top-2
+                            peer-focus:text-xs
+                            peer-focus:text-black
+                            top-[-8px] text-xs">
+                            Confirm Password
+                        </label>
+
+                        <button type="button" onclick="togglePassword('confirm_password', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black">
+
+                            <!-- Eye -->
+                            <svg class="eye-open w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5
+                                    c4.478 0 8.268 2.943 9.542 7
+                                    -1.274 4.057-5.064 7-9.542 7
+                                    -4.477 0-8.268-2.943-9.542-7z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+
+                            <!-- Eye Off -->
+                            <svg class="eye-closed hidden w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587A2 2 0 0012 14
+                                    a2 2 0 001.414-.586M9.88 5.09A9.953
+                                    9.953 0 0112 5c4.478 0 8.268 2.943
+                                    9.542 7a9.97 9.97 0 01-4.293 5.145M6.228
+                                    6.228A9.956 9.956 0 002.458 12
+                                    c1.274 4.057 5.064 7 9.542 7
+                                    a9.95 9.95 0 005.772-1.772" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- pass not match / weak password error -->
+                    <p id="passwordError" class="hidden mt-2 flex items-center gap-2 text-sm text-red-500">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M9.401 3.003c1.155-2.004 4.043-2.004 5.198 0l6.857 11.892c1.155 2.004-.289 4.505-2.599 4.505H5.143c-2.31 0-3.754-2.501-2.599-4.505L9.401 3.003zm2.599 4.247a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8a.75.75 0 01.75-.75zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                                clip-rule="evenodd" />
+                        </svg>
+
+                        <span id="passwordErrorText">Please enter the same password in both fields.</span>
+                    </p>
+
+                    <!-- email / phone format error -->
+                    <p id="formatError" class="hidden mt-2 flex items-center gap-2 text-sm text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M9.401 3.003c1.155-2.004 4.043-2.004 5.198 0l6.857 11.892c1.155 2.004-.289 4.505-2.599 4.505H5.143c-2.31 0-3.754-2.501-2.599-4.505L9.401 3.003zm2.599 4.247a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8a.75.75 0 01.75-.75zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span id="formatErrorText">Please check the highlighted fields.</span>
+                    </p>
+
+                    <!-- Terms -->
+                    <label class="flex items-start gap-2 text-sm text-gray-600">
+                        <input type="checkbox" id="termsCheckbox" class="accent-black w-4 h-4">
+                        <span>
+                            I agree to the
+                            <a href="#" class="font-medium text-black hover:underline">
+                                Terms & Conditions
+                            </a>
+                        </span>
+                    </label>
+
+                    <!-- terms not checked error -->
+                    <p id="termsError" class="hidden mt-2 flex items-center gap-2 text-sm text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M9.401 3.003c1.155-2.004 4.043-2.004 5.198 0l6.857 11.892c1.155 2.004-.289 4.505-2.599 4.505H5.143c-2.31 0-3.754-2.501-2.599-4.505L9.401 3.003zm2.599 4.247a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V8a.75.75 0 01.75-.75zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                                clip-rule="evenodd" />
+                        </svg>
+
+                        <span>Please agree to the Terms &amp; Conditions to continue.</span>
+                    </p>
+
+                    <!-- Create Account Button -->
+                    <button type="submit" id="submitButton"
+                        class="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Create Account
+                    </button>
+
+                    <!-- Divider -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1 h-px bg-gray-300"></div>
+                        <span class="text-sm text-gray-500">OR</span>
+                        <div class="flex-1 h-px bg-gray-300"></div>
+                    </div>
+
+                    <!-- Google Signup -->
+                    <button type="button"
+                        class="w-full border rounded-lg py-3 flex items-center justify-center gap-3 hover:bg-gray-100 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5">
+                            <path fill="#FFC107"
+                                d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+                            <path fill="#FF3D00"
+                                d="M6.3 14.7l6.6 4.8C14.7 15 18.9 12 24 12c3 0 5.7 1.1 7.8 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                            <path fill="#4CAF50"
+                                d="M24 44c5.2 0 10-2 13.5-5.3l-6.2-5.2C29.3 35 26.8 36 24 36c-5.3 0-9.7-3.3-11.4-8l-6.5 5C9.4 39.5 16.1 44 24 44z" />
+                            <path fill="#1976D2"
+                                d="M43.6 20.5H42V20H24v8h11.3c-1 2.9-3 5.1-5.8 6.5l6.2 5.2C39.2 36.4 44 31 44 24c0-1.3-.1-2.4-.4-3.5z" />
+                        </svg>
+                        Continue with Google
+                    </button>
+
+                </form>
+
+                <!-- Login Link -->
+                <p class="text-center text-sm text-gray-600 mt-6 pb-8">
+                    Already have an account?
+                    <a href="/auth/login" class="font-semibold text-black hover:underline">
+                        Login
+                    </a>
+                </p>
+
+            </div>
+        </div>
+
+    </div>
+
+    {% include 'partials/footer.html' %}
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const eyeOpen = button.querySelector(".eye-open");
+            const eyeClosed = button.querySelector(".eye-closed");
+
+            if (input.type === "password") {
+                input.type = "text";
+                eyeOpen.classList.add("hidden");
+                eyeClosed.classList.remove("hidden");
+            } else {
+                input.type = "password";
+                eyeOpen.classList.remove("hidden");
+                eyeClosed.classList.add("hidden");
+            }
+        }
+
+        // Form validation
+        const form = document.getElementById("signupForm");
+
+        const firstname = document.getElementById("firstname");
+        const lastname = document.getElementById("lastname");
+        const email = document.getElementById("email");
+        const phone = document.getElementById("phone");
+        const password = document.getElementById("password");
+        const confirmPassword = document.getElementById("confirm_password");
+        const terms = document.getElementById("termsCheckbox");
+
+        const passwordError = document.getElementById("passwordError");
+        const passwordErrorText = document.getElementById("passwordErrorText");
+        const formatError = document.getElementById("formatError");
+        const formatErrorText = document.getElementById("formatErrorText");
+        const termsError = document.getElementById("termsError");
+        const submitButton = document.getElementById("submitButton");
+
+        const MIN_PASSWORD_LENGTH = 8;
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Allows digits, spaces, +, -, () — 7 to 15 digits total
+        const PHONE_REGEX = /^[0-9+\-\s()]{7,15}$/;
+
+        const simpleInputs = [firstname, lastname, email, phone];
+        const passwordInputs = [password, confirmPassword];
+        const allInputs = [...simpleInputs, ...passwordInputs];
+
+        // Show input error
+        function setError(input) {
+            input.classList.remove("border-gray-300", "border-black");
+            input.classList.add("border-red-500");
+
+            const label = document.querySelector(`label[for="${input.id}"]`);
+            if (label) {
+                label.classList.remove("text-gray-500");
+                label.classList.add("text-red-500");
+            }
+        }
+
+        // Remove input error
+        function clearError(input) {
+            input.classList.remove("border-red-500");
+            input.classList.add("border-gray-300");
+
+            const label = document.querySelector(`label[for="${input.id}"]`);
+            if (label) {
+                label.classList.remove("text-red-500");
+                label.classList.add("text-gray-500");
+            }
+        }
+
+        function checkPasswordsMatch() {
+            const pwd = password.value;
+            const confirmPwd = confirmPassword.value;
+
+            if (pwd === "" || confirmPwd === "") return;
+
+            if (pwd.length < MIN_PASSWORD_LENGTH) {
+                setError(password);
+                passwordErrorText.textContent = `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`;
+                passwordError.classList.remove("hidden");
+                return;
+            }
+
+            if (pwd !== confirmPwd) {
+                setError(password);
+                setError(confirmPassword);
+                passwordErrorText.textContent = "Please enter the same password in both fields.";
+                passwordError.classList.remove("hidden");
+                return;
+            }
+
+            // Everything matches and is long enough
+            clearError(password);
+            clearError(confirmPassword);
+            passwordError.classList.add("hidden");
+        }
+
+        // Clear errors on focus for every field
+        allInputs.forEach(input => {
+            input.addEventListener("focus", () => clearError(input));
+        });
+
+        // Plain fields: clear error as soon as something is typed
+        simpleInputs.forEach(input => {
+            input.addEventListener("input", () => {
+                if (input.value.trim() !== "") {
+                    clearError(input);
+                }
+                formatError.classList.add("hidden");
+            });
+        });
+
+        // Password fields: fixed logic — clears the "empty" state on either
+        // field independently, then re-checks match/strength as a pair
+        passwordInputs.forEach(input => {
+            input.addEventListener("input", () => {
+                if (input.value.trim() !== "") {
+                    clearError(input);
+                }
+                checkPasswordsMatch();
+            });
+        });
+
+        // Hide Terms error when checked
+        terms.addEventListener("change", () => {
+            if (terms.checked) {
+                termsError.classList.add("hidden");
+            }
+        });
+
+        // Clear the "email already in use" error as soon as the user edits the field
+        email.addEventListener("input", () => {
+            emailError.classList.add("hidden");
+        });
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            let valid = true;
+
+            // Hide previous errors
+            emailError.classList.add("hidden");
+            passwordError.classList.add("hidden");
+            formatError.classList.add("hidden");
+            formatErrorText.textContent = "Please check the highlighted fields.";
+            termsError.classList.add("hidden");
+
+            // Trim text fields so no stray whitespace gets sent to the server
+            firstname.value = firstname.value.trim();
+            lastname.value = lastname.value.trim();
+            email.value = email.value.trim();
+            phone.value = phone.value.trim();
+
+            // Empty field validation
+            allInputs.forEach(input => {
+                if (input.value.trim() === "") {
+                    setError(input);
+                    valid = false;
+                }
+            });
+
+            // Email format validation
+            if (email.value !== "" && !EMAIL_REGEX.test(email.value)) {
+                setError(email);
+                formatError.classList.remove("hidden");
+                valid = false;
+            }
+
+            // Phone format validation
+            if (phone.value !== "" && !PHONE_REGEX.test(phone.value)) {
+                setError(phone);
+                formatError.classList.remove("hidden");
+                valid = false;
+            }
+
+            // Password strength + match validation
+            if (password.value !== "" && confirmPassword.value !== "") {
+
+                if (password.value.length < MIN_PASSWORD_LENGTH) {
+                    setError(password);
+                    passwordErrorText.textContent = `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`;
+                    passwordError.classList.remove("hidden");
+                    valid = false;
+                } else if (password.value !== confirmPassword.value) {
+                    setError(password);
+                    setError(confirmPassword);
+                    passwordErrorText.textContent = "Please enter the same password in both fields.";
+                    passwordError.classList.remove("hidden");
+                    valid = false;
+                }
+            }
+
+            // Terms validation
+            if (!terms.checked) {
+                termsError.classList.remove("hidden");
+                valid = false;
+            }
+
+            // Stop here if any client-side validation failed
+            if (!valid) return;
+
+            // Everything else is valid — now check the email against the server
+            submitButton.disabled = true; // prevent double submits while we check + submit
+
+            try {
+                const response = await fetch("/auth/check-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: email.value }),
+                });
+
+                if (!response.ok) {
+                    // Something went wrong on the server side (bad request, 500, etc.)
+                    // Don't guess — show the user a clear error and let them retry.
+                    formatErrorText.textContent = "Something went wrong while checking your email. Please try again.";
+                    formatError.classList.remove("hidden");
+                    submitButton.disabled = false;
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.exists) {
+                    setError(email);
+                    emailError.classList.remove("hidden");
+                    submitButton.disabled = false;
+                    email.focus();
+                    return;
+                }
+
+                // Email is free — now actually create the pending signup
+                const signupResponse = await fetch("/auth/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        firstname: firstname.value,
+                        lastname: lastname.value,
+                        email: email.value,
+                        phone: phone.value,
+                        password: password.value,
+                    }),
+                });
+
+                if (signupResponse.status === 409) {
+                    // Someone else registered this exact email in the split second
+                    // between our check-email call and this request.
+                    setError(email);
+                    emailError.classList.remove("hidden");
+                    submitButton.disabled = false;
+                    email.focus();
+                    return;
+                }
+
+                if (!signupResponse.ok) {
+                    formatErrorText.textContent = "Something went wrong while creating your account. Please try again.";
+                    formatError.classList.remove("hidden");
+                    submitButton.disabled = false;
+                    return;
+                }
+
+                const signupData = await signupResponse.json();
+
+                // Redirect to the OTP verification page — token is just an opaque
+                // pointer to the pending signup, not sensitive data itself.
+                window.location.href = "/auth/verify-email?token=" + encodeURIComponent(signupData.token);
+
+            } catch (err) {
+                // Network error (server unreachable, CORS issue, etc.) — tell the
+                // user instead of guessing what to do.
+                console.error("Signup failed:", err);
+                formatErrorText.textContent = "Couldn't reach the server. Please check your connection and try again.";
+                formatError.classList.remove("hidden");
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

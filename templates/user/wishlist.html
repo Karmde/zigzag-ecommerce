@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishlist - Zig Zag</title>
+</head>
+
+<body class="bg-white">
+    {% include 'partials/header.html' %}
+    <main class="flex-1 pb-12">
+
+        <div class="px-12 py-8 flex items-center gap-3">
+            <p class="text-3xl font-bold text-black">
+                Wishlist
+            </p>
+
+            <span class="text-gray-400 text-2xl">|</span>
+
+            <p class="text-xl font-medium text-gray-700" id="wishlistCount">
+                {{ wishlist_items | length }} Product{{ 's' if wishlist_items | length != 1 else '' }}
+            </p>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-12 gap-y-12 px-10">
+
+            {% for item in wishlist_items %}
+            <div class="wishlist-card" data-wishlist-id="{{ item.id }}">
+
+                <!-- Product -->
+                <a href="/product?id={{ item.product_variant_id }}" class="block">
+
+                    <!-- Image -->
+                    <div class="relative bg-surface rounded-lg overflow-hidden aspect-square shadow-black/15">
+
+                        {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.product_name }}"
+                            class="w-full h-full object-contain">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                            No Image
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="mt-3">
+
+                        <p class="text-[16px] font-semibold text-black">
+                            {{ item.product_name }}
+                            {% if item.color_name %}
+                            ({{ item.color_name }})
+                            {% endif %}
+                            {% if item.size_name %}
+                            ({{ item.size_name }})
+                            {% endif %}
+                        </p>
+
+                        {% if item.category_name %}
+                        <p class="text-[16px] text-gray-500 mt-1">
+                            {{ item.category_name }}
+                        </p>
+                        {% endif %}
+
+                        <div class="flex items-center gap-3 mt-2">
+
+                            <p class="text-[16px] font-medium text-black">
+                                ₹{{ item.unit_price | inr }}
+                            </p>
+
+                            {% if item.original_price and item.original_price > item.unit_price %}
+                            <p class="text-[14px] text-gray-400 line-through">
+                                ₹{{ item.original_price | inr }}
+                            </p>
+
+                            <p class="text-[14px] font-medium text-red-500">
+                                {{ (((item.original_price - item.unit_price) / item.original_price) * 100) | round | int
+                                }}% OFF
+                            </p>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-3 mt-5">
+
+                    <button
+                        class="flex-1 border border-black rounded-full py-2.5 font-medium text-black hover:bg-gray-100 transition move-to-cart-btn"
+                        data-cart-variant-id="{{ item.product_variant_id }}" data-wishlist-id="{{ item.id }}">
+                        Move to Cart
+                    </button>
+
+                    <button
+                        class="w-11 h-11 border border-black rounded-full flex items-center justify-center hover:bg-red-50 transition remove-wishlist-btn"
+                        data-wishlist-id="{{ item.id }}" title="Remove">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+
+                        </svg>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            {% else %}
+
+            <div class="col-span-full text-center py-20 text-gray-500 text-lg">
+                Your wishlist is empty.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <!-- Empty State -->
+        <div id="wishlistEmpty" class="hidden text-center py-20">
+            <p class="text-gray-500 text-lg">Your wishlist is empty.</p>
+            <a href="/catalog" class="mt-4 inline-block text-black font-semibold underline">Browse Products</a>
+        </div>
+
+    </main>
+
+    </main>
+    {% include 'partials/footer.html' %}
+    <script>
+        (function () {
+
+            updateCount();
+
+            function showToast(title, message, type) {
+                var toast = document.getElementById('auth-toast');
+                var toastTitle = document.getElementById('toast-title');
+                var toastMessage = document.getElementById('toast-message');
+                var toastIconSuccess = document.getElementById('toast-icon-success');
+                var toastIconInfo = document.getElementById('toast-icon-info');
+                if (!toast) return;
+
+                toastTitle.textContent = title;
+                toastMessage.textContent = message;
+
+                if (type === 'success') {
+                    toastIconSuccess.classList.remove('hidden');
+                    toastIconInfo.classList.add('hidden');
+                    toast.style.borderLeftColor = '#16a34a';
+                } else {
+                    toastIconSuccess.classList.add('hidden');
+                    toastIconInfo.classList.remove('hidden');
+                    toast.style.borderLeftColor = '#dc2626';
+                }
+
+                toast.classList.remove('hidden', 'translate-x-full', 'opacity-0');
+                toast.classList.add('translate-x-0', 'opacity-100');
+
+                setTimeout(function () {
+                    toast.classList.remove('translate-x-0', 'opacity-100');
+                    toast.classList.add('translate-x-full', 'opacity-0');
+                    setTimeout(function () { toast.classList.add('hidden'); }, 300);
+                }, 3000);
+            }
+
+            document.addEventListener('click', function (e) {
+
+                var removeBtn = e.target.closest('.remove-wishlist-btn');
+                if (removeBtn) {
+                    e.preventDefault();
+                    var wishlistId = parseInt(removeBtn.dataset.wishlistId, 10);
+                    var cardEl = removeBtn.closest('.wishlist-card');
+
+                    window.auth.authFetch('/wishlist/' + wishlistId, { method: 'DELETE' })
+                        .then(function (res) { return res.json().then(function (data) { return { status: res.status, body: data }; }); })
+                        .then(function (result) {
+                            if (result.status >= 200 && result.status < 300) {
+                                if (cardEl) {
+                                    cardEl.style.opacity = '0';
+                                    cardEl.style.transform = 'translateX(20px)';
+                                    cardEl.style.transition = 'all 0.3s ease';
+                                    setTimeout(function () { cardEl.remove(); updateCount(); }, 300);
+                                }
+                                showToast('Removed', 'Item removed from wishlist.', 'info');
+                            } else {
+                                showToast('Error', result.body.detail || 'Failed to remove.', 'error');
+                            }
+                        })
+                        .catch(function () {
+                            showToast('Error', 'Something went wrong.', 'error');
+                        });
+                    return;
+                }
+
+                var moveBtn = e.target.closest('.move-to-cart-btn');
+                if (moveBtn) {
+                    e.preventDefault();
+                    var variantId = parseInt(moveBtn.dataset.cartVariantId, 10);
+                    var wishlistId = parseInt(moveBtn.dataset.wishlistId, 10);
+                    var cardEl = moveBtn.closest('.wishlist-card');
+
+                    window.auth.authFetch('/cart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ product_variant_id: variantId, quantity: 1 })
+                    }).then(function (res) { return res.json().then(function (data) { return { status: res.status, body: data }; }); })
+                        .then(function (result) {
+                            if (result.status >= 200 && result.status < 300) {
+                                showToast('Added to Cart', 'Item moved to your cart.', 'success');
+                                if (wishlistId && cardEl) {
+                                    return window.auth.authFetch('/wishlist/' + wishlistId, { method: 'DELETE' })
+                                        .then(function (res) { return res.json().then(function (data) { return { status: res.status, body: data }; }); })
+                                        .then(function (result) {
+                                            if (result && result.status >= 200 && result.status < 300) {
+                                                cardEl.style.opacity = '0';
+                                                cardEl.style.transform = 'translateX(20px)';
+                                                cardEl.style.transition = 'all 0.3s ease';
+                                                setTimeout(function () { cardEl.remove(); updateCount(); }, 300);
+                                            }
+                                        });
+                                }
+                            } else {
+                                showToast('Error', result.body.detail || 'Failed to add to cart.', 'error');
+                            }
+                        })
+                        .catch(function () {
+                            showToast('Error', 'Something went wrong.', 'error');
+                        });
+                    return;
+                }
+
+            });
+
+            function updateCount() {
+                var cards = document.querySelectorAll('.wishlist-card');
+                var countEl = document.getElementById('wishlistCount');
+                var grid = document.getElementById('wishlistGrid');
+                var emptyEl = document.getElementById('wishlistEmpty');
+                if (countEl) {
+                    countEl.textContent = cards.length + ' Product' + (cards.length !== 1 ? 's' : '');
+                }
+                if (cards.length === 0) {
+                    if (grid) grid.classList.add('hidden');
+                    if (emptyEl) emptyEl.classList.remove('hidden');
+                } else {
+                    if (grid) grid.classList.remove('hidden');
+                    if (emptyEl) emptyEl.classList.add('hidden');
+                }
+                if (typeof window.updateWishlistBadge === 'function') {
+                    window.updateWishlistBadge();
+                }
+            }
+
+        })();
+    </script>
+</body>
+
+</html>
