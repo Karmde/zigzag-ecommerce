@@ -160,19 +160,23 @@ def get_coupon_categories(db: Session, coupon_id: int) -> list[int]:
 
 def set_coupon_products(db: Session, coupon_id: int, product_ids: list[int]) -> None:
     db.execute(text("DELETE FROM coupon_products WHERE coupon_id = :coupon_id"), {"coupon_id": coupon_id})
-    for pid in product_ids:
-        db.execute(text("""
-            INSERT INTO coupon_products (coupon_id, product_id) VALUES (:coupon_id, :product_id)
-        """), {"coupon_id": coupon_id, "product_id": pid})
+    if product_ids:
+        values = [{"coupon_id": coupon_id, "product_id": pid} for pid in product_ids]
+        db.execute(
+            text("INSERT INTO coupon_products (coupon_id, product_id) VALUES (:coupon_id, :product_id)"),
+            values,
+        )
     db.commit()
 
 
 def set_coupon_categories(db: Session, coupon_id: int, category_ids: list[int]) -> None:
     db.execute(text("DELETE FROM coupon_categories WHERE coupon_id = :coupon_id"), {"coupon_id": coupon_id})
-    for cid in category_ids:
-        db.execute(text("""
-            INSERT INTO coupon_categories (coupon_id, category_id) VALUES (:coupon_id, :category_id)
-        """), {"coupon_id": coupon_id, "category_id": cid})
+    if category_ids:
+        values = [{"coupon_id": coupon_id, "category_id": cid} for cid in category_ids]
+        db.execute(
+            text("INSERT INTO coupon_categories (coupon_id, category_id) VALUES (:coupon_id, :category_id)"),
+            values,
+        )
     db.commit()
 
 

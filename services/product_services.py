@@ -90,10 +90,16 @@ def _resolve_category(db: Session, path: str) -> int:
 
 
 def _get_or_create_tag(db: Session, name: str) -> int:
-    row = db.execute(text("SELECT id FROM tags WHERE BINARY name = :name"), {"name": name}).mappings().first()
+    row = db.execute(
+        text("SELECT id FROM tags WHERE name = :name COLLATE utf8mb4_bin"),
+        {"name": name}
+    ).mappings().first()
     if row:
         return row["id"]
-    row = db.execute(text("SELECT id FROM tags WHERE name = :name"), {"name": name}).mappings().first()
+    row = db.execute(
+        text("SELECT id FROM tags WHERE LOWER(name) = LOWER(:name)"),
+        {"name": name}
+    ).mappings().first()
     if row:
         db.execute(text("UPDATE tags SET name = :name WHERE id = :id"), {"name": name, "id": row["id"]})
         return row["id"]
@@ -158,22 +164,30 @@ def save_product(db: Session, payload: ProductPayload) -> ProductPayloadResponse
     product_id = db.execute(text("SELECT LAST_INSERT_ID()")).scalar()
     
     product_categories = []
+    category_ids = []
     for cat_req in payload.product_categories:
         category_id = _resolve_category(db, cat_req.category_path)
-        db.execute(text("""
-            INSERT INTO product_categories (product_id, category_id)
-            VALUES (:product_id, :category_id)
-        """), {"product_id": product_id, "category_id": category_id})
+        category_ids.append(category_id)
         product_categories.append(ProductCategoryResponse(product_id=product_id, category_id=category_id))
-    
+
+    if category_ids:
+        db.execute(
+            text("INSERT INTO product_categories (product_id, category_id) VALUES (:product_id, :category_id)"),
+            [{"product_id": product_id, "category_id": cid} for cid in category_ids],
+        )
+
     product_tags = []
+    tag_ids = []
     for tag_req in payload.product_tags:
         tag_id = _get_or_create_tag(db, tag_req.tag)
-        db.execute(text("""
-            INSERT INTO product_tags (product_id, tag_id)
-            VALUES (:product_id, :tag_id)
-        """), {"product_id": product_id, "tag_id": tag_id})
+        tag_ids.append(tag_id)
         product_tags.append(ProductTagResponse(product_id=product_id, tag_id=tag_id))
+
+    if tag_ids:
+        db.execute(
+            text("INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)"),
+            [{"product_id": product_id, "tag_id": tid} for tid in tag_ids],
+        )
     
     product_images = []
     for idx, img_req in enumerate(payload.product_images):

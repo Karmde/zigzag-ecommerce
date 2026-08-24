@@ -75,29 +75,66 @@ def get_cart(db: Session, user_id: int) -> list[dict]:
     rows = db.execute(
         text("""
             SELECT ci.id, ci.user_id, ci.product_variant_id, ci.quantity,
-                   pv.product_id, pv.sku, pv.price_override, pv.stock_quantity, pv.is_active,
-                   p.name AS product_name, p.slug AS product_slug, p.base_price, p.discount_percent,
-                   c.name AS color_name, c.hex AS color_hex,
-                   s.name AS size_name,
-                   vi.url AS image_url,
-                   ci.created_at AS created_at,
-                   ci.updated_at AS updated_at
-            FROM cart_items AS ci
-            JOIN product_variants AS pv ON pv.id = ci.product_variant_id
-            JOIN products AS p ON p.id = pv.product_id
-            LEFT JOIN colors AS c ON c.id = pv.color_id
-            LEFT JOIN sizes AS s ON s.id = pv.size_id
-            LEFT JOIN variant_images AS vi ON vi.id = (
-                SELECT id FROM variant_images AS vi2
-                WHERE vi2.product_id = p.id AND vi2.color_id = pv.color_id
-                ORDER BY vi2.sort_order ASC
-                LIMIT 1
-            )
+                pv.product_id, pv.sku, pv.price_override, pv.stock_quantity, pv.is_active,
+                p.name AS product_name, p.slug AS product_slug,
+                p.base_price, p.discount_percent,
+                c.name AS color_name, c.hex AS color_hex,
+                s.name AS size_name,
+                vi.url AS image_url,
+                ci.created_at,
+                ci.updated_at
+            FROM cart_items ci
+            JOIN product_variants pv
+                ON pv.id = ci.product_variant_id
+            JOIN products p
+                ON p.id = pv.product_id
+            LEFT JOIN colors c
+                ON c.id = pv.color_id
+            LEFT JOIN sizes s
+                ON s.id = pv.size_id
+
+            LEFT JOIN (
+                SELECT
+                    id,
+                    product_id,
+                    color_id,
+                    url,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY product_id, color_id
+                        ORDER BY sort_order ASC
+                    ) AS rn
+                FROM variant_images
+            ) vi
+            ON vi.product_id = p.id
+            AND vi.color_id = pv.color_id
+            AND vi.rn = 1
+
             WHERE ci.user_id = :uid
-            ORDER BY ci.created_at ASC
+            ORDER BY ci.created_at ASC;
         """),
         {"uid": user_id},
     ).mappings().all()
+
+    if not rows:
+        return []
+
+    product_ids = [r["product_id"] for r in rows]
+
+    cat_rows = db.execute(
+        text("""
+            SELECT pc.product_id, c.name
+            FROM product_categories AS pc
+            JOIN categories AS c ON c.id = pc.category_id
+            WHERE pc.product_id IN :ids
+            ORDER BY pc.product_id, c.id
+        """),
+        {"ids": tuple(product_ids)},
+    ).mappings().all()
+
+    categories = {}
+    for r in cat_rows:
+        if r["product_id"] not in categories:
+            categories[r["product_id"]] = r["name"]
 
     cart_items = []
     for r in rows:
@@ -111,18 +148,6 @@ def get_cart(db: Session, user_id: int) -> list[dict]:
         else:
             sale_price = round(base - (base * disc / 100), 2)
             unit_price = sale_price
-
-        cat_rows = db.execute(
-            text("""
-                SELECT c.name
-                FROM product_categories AS pc
-                JOIN categories AS c ON c.id = pc.category_id
-                WHERE pc.product_id = :pid
-                ORDER BY c.id
-            """),
-            {"pid": r["product_id"]},
-        ).mappings().all()
-        category_name = ", ".join(row["name"] for row in cat_rows) if cat_rows else ""
 
         cart_items.append({
             "id": r["id"],
@@ -141,7 +166,7 @@ def get_cart(db: Session, user_id: int) -> list[dict]:
             "discount_percent": disc,
             "stock_quantity": r["stock_quantity"],
             "is_active": bool(r["is_active"]),
-            "category_name": category_name,
+            "category_name": categories.get(r["product_id"], ""),
             "created_at": r["created_at"],
             "updated_at": r["updated_at"],
         });
