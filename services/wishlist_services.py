@@ -68,17 +68,46 @@ def get_wishlist(db: Session, user_id: int) -> list[dict]:
             JOIN products AS p ON p.id = pv.product_id
             LEFT JOIN colors AS c ON c.id = pv.color_id
             LEFT JOIN sizes AS s ON s.id = pv.size_id
-            LEFT JOIN variant_images AS vi ON vi.id = (
-                SELECT id FROM variant_images AS vi2
-                WHERE vi2.product_id = p.id AND vi2.color_id = pv.color_id
-                ORDER BY vi2.sort_order ASC
-                LIMIT 1
-            )
+            LEFT JOIN (
+                SELECT
+                    product_id,
+                    color_id,
+                    url,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY product_id, color_id
+                        ORDER BY sort_order ASC
+                    ) AS rn
+                FROM variant_images
+            ) vi
+            ON vi.product_id = p.id
+            AND vi.color_id = pv.color_id
+            AND vi.rn = 1
             WHERE w.user_id = :uid
             ORDER BY w.created_at DESC
         """),
         {"uid": user_id},
     ).mappings().all()
+
+    if not rows:
+        return []
+
+    product_ids = [r["product_id"] for r in rows]
+
+    cat_rows = db.execute(
+        text("""
+            SELECT pc.product_id, c.name
+            FROM product_categories AS pc
+            JOIN categories AS c ON c.id = pc.category_id
+            WHERE pc.product_id IN :ids
+            ORDER BY pc.product_id, c.id
+        """),
+        {"ids": tuple(product_ids)},
+    ).mappings().all()
+
+    categories = {}
+    for r in cat_rows:
+        if r["product_id"] not in categories:
+            categories[r["product_id"]] = r["name"]
 
     items = []
     for r in rows:
@@ -92,18 +121,6 @@ def get_wishlist(db: Session, user_id: int) -> list[dict]:
         else:
             sale_price = round(base - (base * disc / 100), 2)
             unit_price = sale_price
-
-        cat_rows = db.execute(
-            text("""
-                SELECT c.name
-                FROM product_categories AS pc
-                JOIN categories AS c ON c.id = pc.category_id
-                WHERE pc.product_id = :pid
-                ORDER BY c.id
-            """),
-            {"pid": r["product_id"]},
-        ).mappings().all()
-        category_name = ", ".join(row["name"] for row in cat_rows) if cat_rows else ""
 
         items.append({
             "id": r["id"],
@@ -119,7 +136,7 @@ def get_wishlist(db: Session, user_id: int) -> list[dict]:
             "unit_price": unit_price,
             "stock_quantity": r["stock_quantity"],
             "is_active": bool(r["is_active"]),
-            "category_name": category_name,
+            "category_name": categories.get(r["product_id"], ""),
             "created_at": r["created_at"],
         })
 

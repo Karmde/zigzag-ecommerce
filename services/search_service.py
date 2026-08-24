@@ -36,15 +36,20 @@ class SearchService:
                         b.name AS brand_name,
                         p.base_price,
                         p.discount_percent,
-                        (
-                            SELECT pi.url
-                            FROM product_images pi
-                            WHERE pi.product_id = p.id AND pi.is_primary = 1
-                            LIMIT 1
-                        ) AS main_image,
+                        pi.url AS main_image,
                         COUNT(*) OVER() AS total
                     FROM products p
                     LEFT JOIN brands b ON b.id = p.brand_id
+                    LEFT JOIN (
+                        SELECT
+                            product_id,
+                            url,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY product_id
+                                ORDER BY is_primary DESC, id ASC
+                            ) AS rn
+                        FROM product_images
+                    ) pi ON pi.product_id = p.id AND pi.rn = 1
                     WHERE
                         p.status = 'active'
                         AND (
