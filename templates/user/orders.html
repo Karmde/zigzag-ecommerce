@@ -352,7 +352,7 @@
                 <div class="flex gap-6">
     
                     <img id="cancelModalImage" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500"
-                        class="h-28 w-28 rounded-2xl border border-gray-200 object-cover">
+                        class="h-28 w-28 rounded-2xl border border-gray-200 object-contain">
     
                     <div class="flex flex-1 flex-col justify-between">
     
@@ -1158,6 +1158,149 @@
             resetAndFetch();
         }
 
+        const reorderModal = document.getElementById("reorderModal");
+
+        let currentReorderContext = null;
+        let reorderQty = 1;
+        let maxReorderQty = 1;
+
+        function openReorderModal() {
+            reorderModal.classList.remove("hidden");
+            reorderModal.classList.add("flex");
+            const headerEl = document.getElementById("main-header");
+            if (headerEl) headerEl.style.display = "none";
+        }
+
+        function closeReorderModal() {
+            reorderModal.classList.add("hidden");
+            reorderModal.classList.remove("flex");
+            const headerEl = document.getElementById("main-header");
+            if (headerEl) headerEl.style.display = "";
+        }
+
+        function updateReorderQtyButtons() {
+            const decreaseBtn = document.getElementById("decreaseQuantity");
+            const increaseBtn = document.getElementById("increaseQuantity");
+            if (decreaseBtn) decreaseBtn.disabled = reorderQty <= 1;
+            if (increaseBtn) increaseBtn.disabled = reorderQty >= maxReorderQty;
+        }
+
+        document.getElementById("closeReorderModal").addEventListener("click", closeReorderModal);
+
+        document.getElementById("decreaseQuantity").addEventListener("click", () => {
+            if (reorderQty > 1) {
+                reorderQty--;
+                const reorderQtyEl = document.getElementById("reorderModalQuantity");
+                if (reorderQtyEl) reorderQtyEl.textContent = reorderQty;
+                updateReorderQtyButtons();
+            }
+        });
+
+        document.getElementById("increaseQuantity").addEventListener("click", () => {
+            if (reorderQty < maxReorderQty) {
+                reorderQty++;
+                const reorderQtyEl = document.getElementById("reorderModalQuantity");
+                if (reorderQtyEl) reorderQtyEl.textContent = reorderQty;
+                updateReorderQtyButtons();
+            }
+        });
+
+        document.getElementById("reorderNow").addEventListener("click", async () => {
+            if (!currentReorderContext) return;
+
+            const confirmBtn = document.getElementById("reorderNow");
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = "Adding...";
+
+            try {
+                const response = await window.auth.authFetch("/cart/add", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        product_id: currentReorderContext.product_id,
+                        color_id: currentReorderContext.color_id,
+                        size_id: currentReorderContext.size_id,
+                        quantity: reorderQty,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Failed to add to cart.");
+                }
+
+                window.showToast("Success", "Product added to cart!", "success");
+                closeReorderModal();
+            } catch (err) {
+                window.showToast("Error", err.message || "Something went wrong.", "info");
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = "Reorder Now";
+            }
+        });
+
+        document.getElementById("changeConfig").addEventListener("click", () => {
+            closeReorderModal();
+        });
+
+        document.getElementById("ordersContainer").addEventListener("click", function (e) {
+            const btn = e.target.closest(".open-reorder-modal");
+            if (!btn) return;
+
+            const card = btn.closest('[data-item-id]');
+            if (!card) return;
+
+            const orderId = parseInt(card.dataset.orderId, 10);
+            const itemId = parseInt(card.dataset.itemId, 10);
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+
+            const item = (order.items || []).find(i => i.id === itemId) || null;
+            if (!item) return;
+
+            currentReorderContext = {
+                order_id: orderId,
+                item_id: itemId,
+                product_id: item.product_id,
+                color_id: item.color_id,
+                size_id: item.size_id,
+                ordered_qty: item.quantity || 1,
+            };
+
+            const imageSrc = item.product_image || '';
+            const productName = item.product_name || 'Unknown Product';
+            const colorName = item.color_name || '';
+            const sizeName = item.size_name || '';
+            const variantInfo = [colorName, sizeName].filter(Boolean).join(' \u2022 ') || 'N/A';
+            const orderedQty = item.quantity || 1;
+            const unitPrice = item.unit_price || 0;
+
+            const reorderModalImage = document.getElementById("reorderModalImage");
+            const reorderModalProductName = document.getElementById("reorderModalProductName");
+            const reorderModalColor = document.getElementById("reorderModalColor");
+            const reorderModalSize = document.getElementById("reorderModalSize");
+            const reorderModalQuantity = document.getElementById("reorderModalQuantity");
+            const reorderModalPrice = document.getElementById("reorderModalPrice");
+            const reorderStatus = document.getElementById("reorderStatus");
+
+            if (reorderModalImage) reorderModalImage.src = imageSrc;
+            if (reorderModalProductName) reorderModalProductName.textContent = productName;
+            if (reorderModalColor) reorderModalColor.textContent = colorName || 'N/A';
+            if (reorderModalSize) reorderModalSize.textContent = sizeName || 'N/A';
+
+            reorderQty = Math.min(orderedQty, orderedQty);
+            maxReorderQty = orderedQty;
+            if (reorderModalQuantity) reorderModalQuantity.textContent = reorderQty;
+            updateReorderQtyButtons();
+
+            const priceText = '\u20B9' + Math.round(unitPrice || 0).toLocaleString('en-IN');
+            if (reorderModalPrice) reorderModalPrice.textContent = priceText;
+            if (reorderStatus) reorderStatus.textContent = 'Ready to reorder';
+
+            openReorderModal();
+        });
+
         const cancelOrderModal = document.getElementById("cancelOrderModal");
         const otherReasonBox = document.getElementById("otherReasonBox");
         const otherReasonRadio = document.getElementById("otherReason");
@@ -1169,13 +1312,15 @@
         function openCancelOrderModal() {
             cancelOrderModal.classList.remove("hidden");
             cancelOrderModal.classList.add("flex");
-            if (mainHeader) mainHeader.style.display = "none";
+            const headerEl = document.getElementById("main-header");
+            if (headerEl) headerEl.style.display = "none";
         }
 
         function closeCancelOrderModal() {
             cancelOrderModal.classList.add("hidden");
             cancelOrderModal.classList.remove("flex");
-            if (mainHeader) mainHeader.style.display = "";
+            const headerEl = document.getElementById("main-header");
+            if (headerEl) headerEl.style.display = "";
             resetCancelForm();
         }
 
@@ -1372,13 +1517,15 @@
         function openReturnOrderModal() {
             returnOrderModal.classList.remove("hidden");
             returnOrderModal.classList.add("flex");
-            if (mainHeader) mainHeader.style.display = "none";
+            const headerEl = document.getElementById("main-header");
+            if (headerEl) headerEl.style.display = "none";
         }
 
         function closeReturnOrderModal() {
             returnOrderModal.classList.add("hidden");
             returnOrderModal.classList.remove("flex");
-            if (mainHeader) mainHeader.style.display = "";
+            const headerEl = document.getElementById("main-header");
+            if (headerEl) headerEl.style.display = "";
             resetReturnForm();
         }
 
