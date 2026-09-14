@@ -1213,13 +1213,11 @@
             confirmBtn.textContent = "Adding...";
 
             try {
-                const response = await window.auth.authFetch("/cart/add", {
+                const response = await window.auth.authFetch("/cart", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        product_id: currentReorderContext.product_id,
-                        color_id: currentReorderContext.color_id,
-                        size_id: currentReorderContext.size_id,
+                        product_variant_id: currentReorderContext.product_variant_id,
                         quantity: reorderQty,
                     }),
                 });
@@ -1262,9 +1260,7 @@
             currentReorderContext = {
                 order_id: orderId,
                 item_id: itemId,
-                product_id: item.product_id,
-                color_id: item.color_id,
-                size_id: item.size_id,
+                product_variant_id: item.product_variant_id,
                 ordered_qty: item.quantity || 1,
             };
 
