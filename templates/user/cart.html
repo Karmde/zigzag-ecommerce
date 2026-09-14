@@ -184,9 +184,11 @@
                             </div>
 
                             <!-- Promo Discount -->
-                            <div id="promoDiscountRow" class="hidden flex justify-between items-center">
+                            <div id="promoDiscountRow" class="{% if not applied_coupon %}hidden{% endif %} flex justify-between items-center">
                                 <span class="text-gray-700 font-semibold">Coupon Code</span>
-                                <span id="promoDiscountValue" class="font-semibold text-red-600">-₹0</span>
+                                <span id="promoDiscountValue" class="font-semibold text-red-600">
+                                    {% if applied_coupon %}-₹{{ applied_coupon.discount_amount | round | int | inr }}{% endif %}
+                                </span>
                             </div>
 
                             <!-- Shipping -->
@@ -213,7 +215,7 @@
 
                             <!-- Promo Trigger -->
                             <div id="promoTrigger"
-                                class="flex items-center justify-between py-3 cursor-pointer rounded-lg transition">
+                                class="flex items-center justify-between py-3 cursor-pointer rounded-lg transition {% if applied_coupon %}hidden{% endif %}">
 
                                 <!-- Left -->
                                 <div class="flex items-center gap-4">
@@ -247,13 +249,15 @@
                             </div>
 
                             <!-- Applied Coupon -->
-                            <div id="appliedCoupon" class="hidden">
+                            <div id="appliedCoupon" class="{% if not applied_coupon %}hidden{% endif %}">
                                 <div class="flex items-center justify-between bg-white">
                                     <div>
                                         <p class="text-xs font-medium text-black uppercase tracking-wide">Coupon Code
                                             Applied</p>
                                         <p id="appliedCouponCode"
-                                            class="text-lg font-bold tracking-wider mt-1 text-black uppercase"></p>
+                                            class="text-lg font-bold tracking-wider mt-1 text-black uppercase">
+                                            {{ applied_coupon.code if applied_coupon else '' }}
+                                        </p>
                                     </div>
                                     <button id="removeCoupon"
                                         class="text-black hover:text-gray-700 text-sm font-medium border-2 border-black px-3 py-1.5 rounded-lg transition hover:bg-gray-100">
@@ -268,7 +272,7 @@
                         <hr class="my-6 border-gray-300">
 
                         <!-- Button -->
-                        <button
+                        <button type="button" onclick="window.location.href='/checkout'"
                             class="w-full bg-black text-white py-4 rounded-full font-semibold text-lg hover:bg-gray-600 transition duration-300">
                             Proceed to Buy
                         </button>
@@ -338,6 +342,11 @@
 
     </div>
     {% include 'partials/footer.html' %}
+    {% if applied_coupon %}
+    <script>
+        window.initialCoupon = {{ applied_coupon | tojson }};
+    </script>
+    {% endif %}
     <script>
         (function () {
             'use strict';
@@ -412,8 +421,8 @@
                     });
 
                     var couponDiscount = 0;
-                    if (currentCoupon && currentCoupon.discount_amount) {
-                        couponDiscount = currentCoupon.discount_amount;
+                    if (currentCoupon && currentCoupon.coupon && currentCoupon.coupon.discount_amount) {
+                        couponDiscount = currentCoupon.coupon.discount_amount;
                     }
 
                     var finalTotal = Math.max(0, cartTotal - couponDiscount);
@@ -742,6 +751,17 @@
                 var removeCouponBtn = document.getElementById('removeCoupon');
                 var currentCoupon = null;
 
+                if (window.initialCoupon) {
+                    currentCoupon = {
+                        success: true,
+                        message: window.initialCoupon.message || 'Coupon applied successfully!',
+                        coupon: {
+                            code: window.initialCoupon.code,
+                            discount_amount: window.initialCoupon.discount_amount || 0,
+                        },
+                    };
+                }
+
                 if (promoTrigger && promoModal) {
                     promoTrigger.addEventListener('click', function () {
                         promoModal.classList.remove('hidden');
@@ -793,23 +813,25 @@
                         return Promise.resolve();
                     }
 
-                    var totals = calculateCartTotal();
-
-                    return window.auth.authFetch('/coupons/verify', {
+                    return window.auth.authFetch('/cart/coupon/apply', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            code: currentCoupon.coupon.code,
-                            cart_total: totals.cartTotal
+                            code: currentCoupon.coupon.code
                         })
                     })
                         .then(responseWithBody)
                         .then(function (result) {
 
-                            if (!result.ok || !result.body.valid) {
-                                // Coupon became invalid
+                            if (!result.ok || !result.body.success) {
+                                window.auth.authFetch('/cart/coupon/remove', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({})
+                                }).catch(function () {});
+
                                 currentCoupon = null;
 
                                 var promoTrigger = document.getElementById('promoTrigger');
@@ -838,7 +860,7 @@
 
                             if (promoDiscountValue) {
                                 promoDiscountValue.textContent =
-                                    '-₹' + Math.round(result.body.discount_amount).toLocaleString('en-IN');
+                                    '-₹' + Math.round(result.body.coupon.discount_amount).toLocaleString('en-IN');
                             }
 
                             updateCartSummary();
@@ -860,7 +882,7 @@
                     }
 
                     if (promoDiscountRow && promoDiscountValue) {
-                        var discount = coupon.discount_amount || 0;
+                        var discount = (coupon.coupon && coupon.coupon.discount_amount) || 0;
                         promoDiscountValue.textContent = '-' + '₹' + Math.round(discount).toLocaleString('en-IN');
                         promoDiscountRow.classList.remove('hidden');
                     }
@@ -892,18 +914,18 @@
                         applyPromoBtn.disabled = true;
                         applyPromoBtn.textContent = 'Applying...';
 
-                        window.auth.authFetch('/coupons/verify', {
+                        window.auth.authFetch('/cart/coupon/apply', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ code: code, cart_total: totals.cartTotal })
+                            body: JSON.stringify({ code: code })
                         })
                             .then(responseWithBody)
                             .then(function (result) {
                                 if (!result.ok) {
-                                    showCouponError(errorMessage(result, 'Failed to verify coupon.'));
+                                    showCouponError(errorMessage(result, 'Failed to apply coupon.'));
                                     return;
                                 }
-                                if (!result.body.valid) {
+                                if (!result.body.success) {
                                     showCouponError(result.body.message || 'Invalid coupon.');
                                     return;
                                 }
@@ -921,21 +943,37 @@
 
                 if (removeCouponBtn) {
                     removeCouponBtn.addEventListener('click', function () {
-                        currentCoupon = null;
-                        var promoTrigger = document.getElementById('promoTrigger');
-                        var appliedCouponEl = document.getElementById('appliedCoupon');
-                        var promoDiscountRow = document.getElementById('promoDiscountRow');
+                        window.auth.authFetch('/cart/coupon/remove', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({})
+                        })
+                            .then(responseWithBody)
+                            .then(function (result) {
+                                if (!result.ok) {
+                                    showCouponError(errorMessage(result, 'Failed to remove coupon.'));
+                                    return;
+                                }
+                                currentCoupon = null;
+                                var promoTrigger = document.getElementById('promoTrigger');
+                                var appliedCouponEl = document.getElementById('appliedCoupon');
+                                var promoDiscountRow = document.getElementById('promoDiscountRow');
 
-                        if (appliedCouponEl) {
-                            appliedCouponEl.classList.add('hidden');
-                        }
-                        if (promoTrigger) {
-                            promoTrigger.classList.remove('hidden');
-                        }
-                        if (promoDiscountRow) {
-                            promoDiscountRow.classList.add('hidden');
-                        }
-                        updateCartSummary();
+                                if (appliedCouponEl) {
+                                    appliedCouponEl.classList.add('hidden');
+                                }
+                                if (promoTrigger) {
+                                    promoTrigger.classList.remove('hidden');
+                                }
+                                if (promoDiscountRow) {
+                                    promoDiscountRow.classList.add('hidden');
+                                }
+                                updateCartSummary();
+                                showToast('Removed', 'Coupon removed from cart.', 'info');
+                            })
+                            .catch(function () {
+                                showCouponError('Something went wrong.');
+                            });
                     });
                 }
 

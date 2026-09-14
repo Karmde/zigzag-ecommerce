@@ -292,3 +292,4 @@ class CatalogProductResponse(BaseModel):
 class CatalogProductsResponse(BaseModel):
     total: int
     products: List[CatalogProductResponse]
+    has_next: bool = False

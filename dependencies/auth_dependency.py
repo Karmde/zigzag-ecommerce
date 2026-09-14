@@ -4,48 +4,26 @@ from sqlalchemy.orm import Session
 from database.database import get_db
 from services.token_services import decode_access_token, get_user_from_refresh_token
 
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+security = HTTPBearer()
 
 def get_current_user(
-    authorization: str | None = Header(default=None),
-) -> dict:
-    """
-    Validates the JWT access token.
-
-    Expected header:
-        Authorization: Bearer <access_token>
-
-    Returns:
-        {
-            "id": int,
-            "role": str
-        }
-    """
-
-    if authorization is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated.",
-        )
-
-    scheme, _, token = authorization.partition(" ")
-
-    if scheme.lower() != "bearer" or not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header.",
-        )
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    token = credentials.credentials
 
     payload = decode_access_token(token)
 
     if payload is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401,
             detail="Invalid or expired access token.",
         )
 
     if "sub" not in payload or "role" not in payload:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401,
             detail="Invalid access token.",
         )
 

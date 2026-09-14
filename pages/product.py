@@ -16,9 +16,10 @@ async def catalog(
     size: str = None,
     min_price: float = None,
     max_price: float = None,
-    sort: str = "featured",
+    sort: str = "newest",
     category_name: str = None,
     brand_name: str = None,
+    sales: bool = False,
 ):
     category_ids = [int(x) for x in category.split(",") if x] if category else None
     brand_ids = [int(x) for x in brand.split(",") if x] if brand else None
@@ -30,7 +31,7 @@ async def catalog(
     try:
         result = product_services.get_catalog_products_filtered(
             db,
-            limit=50,
+            limit=15,
             offset=0,
             query=q,
             category_ids=category_ids,
@@ -43,6 +44,7 @@ async def catalog(
             sort_by=sort,
             category_name=category_name,
             brand_name=brand_name,
+            sales=sales,
         )
     finally:
         db.close()
@@ -55,7 +57,11 @@ async def catalog(
     return templates.TemplateResponse(
         request=request,
         name="product/catalog.html",
-        context={"products": products, "search_query": q},
+        context={
+            "products": products,
+            "search_query": q,
+            "total_products": result["total"],
+        },
     )
 
 @router.get("/product")

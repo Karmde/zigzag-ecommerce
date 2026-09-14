@@ -87,21 +87,24 @@ def view_product(
 def get_recently_viewed(
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
+    limit: int = Query(4, ge=1, le=20),
+    offset: int = Query(0, ge=0),
 ):
-    results = product_services.get_recently_viewed(db, current_user["id"])
+    results = product_services.get_recently_viewed(db, current_user["id"], limit=limit, offset=offset)
     return results
 
 
 @router.get("/related")
 def get_related_products(
     product_id: int,
-    limit: int = Query(12, ge=1, le=50),
+    limit: int = Query(4, ge=1, le=50),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     row = db.execute(text("SELECT id FROM products WHERE id = :id"), {"id": product_id}).mappings().first()
     if not row:
         raise HTTPException(status_code=404, detail="Product not found.")
-    results = product_services.get_related_products(db, product_id, limit)
+    results = product_services.get_related_products(db, product_id, limit=limit, offset=offset)
     return results
 
 

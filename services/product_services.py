@@ -602,6 +602,120 @@ def get_catalog_products(db: Session, limit: int = 50, offset: int = 0, query: s
     return results
 
 
+
+def get_random_products(db: Session, limit: int = 4) -> List[dict]:
+    products = db.execute(text("""
+        SELECT id, name, slug, base_price, discount_percent, status, is_sellable
+        FROM products
+        WHERE status = 'active' AND is_sellable = 1
+        ORDER BY RAND()
+        LIMIT :limit
+    """), {"limit": limit}).mappings().all()
+
+    product_ids = [p["id"] for p in products]
+
+    images = {}
+    if product_ids:
+        img_rows = db.execute(
+            text("""
+                SELECT product_id, url FROM product_images
+                WHERE product_id IN :ids AND is_primary = 1
+            """),
+            {"ids": tuple(product_ids)},
+        ).mappings().all()
+        images = {r["product_id"]: r["url"] for r in img_rows}
+
+    categories = {}
+    if product_ids:
+        cat_rows = db.execute(
+            text("""
+                SELECT pc.product_id, c.name
+                FROM product_categories pc
+                INNER JOIN categories c ON c.id = pc.category_id
+                WHERE pc.product_id IN :ids
+                ORDER BY pc.product_id, pc.category_id
+            """),
+            {"ids": tuple(product_ids)},
+        ).mappings().all()
+        for r in cat_rows:
+            if r["product_id"] not in categories:
+                categories[r["product_id"]] = r["name"]
+
+    results = []
+    for p in products:
+        pid = p["id"]
+        results.append(
+            {
+                "id": pid,
+                "name": p["name"],
+                "slug": p["slug"],
+                "base_price": float(p["base_price"]),
+                "discount_percent": float(p["discount_percent"]),
+                "image_url": images.get(pid),
+                "category_name": categories.get(pid),
+            }
+        )
+
+    return results
+
+
+def get_latest_products(db: Session, limit: int = 4) -> List[dict]:
+    products = db.execute(text("""
+        SELECT id, name, slug, base_price, discount_percent, status, is_sellable
+        FROM products
+        WHERE status = 'active' AND is_sellable = 1
+        ORDER BY id DESC
+        LIMIT :limit
+    """), {"limit": limit}).mappings().all()
+
+    product_ids = [p["id"] for p in products]
+
+    images = {}
+    if product_ids:
+        img_rows = db.execute(
+            text("""
+                SELECT product_id, url FROM product_images
+                WHERE product_id IN :ids AND is_primary = 1
+            """),
+            {"ids": tuple(product_ids)},
+        ).mappings().all()
+        images = {r["product_id"]: r["url"] for r in img_rows}
+
+    categories = {}
+    if product_ids:
+        cat_rows = db.execute(
+            text("""
+                SELECT pc.product_id, c.name
+                FROM product_categories pc
+                INNER JOIN categories c ON c.id = pc.category_id
+                WHERE pc.product_id IN :ids
+                ORDER BY pc.product_id, pc.category_id
+            """),
+            {"ids": tuple(product_ids)},
+        ).mappings().all()
+        for r in cat_rows:
+            if r["product_id"] not in categories:
+                categories[r["product_id"]] = r["name"]
+
+    results = []
+    for p in products:
+        pid = p["id"]
+        results.append(
+            {
+                "id": pid,
+                "name": p["name"],
+                "slug": p["slug"],
+                "base_price": float(p["base_price"]),
+                "discount_percent": float(p["discount_percent"]),
+                "image_url": images.get(pid),
+                "category_name": categories.get(pid),
+            }
+        )
+
+    return results
+
+
+
 def delete_product(db: Session, product_id: int) -> bool:
     result = db.execute(text("DELETE FROM products WHERE id = :id"), {"id": product_id})
     try:
@@ -636,7 +750,7 @@ def add_recently_viewed(db: Session, user_id: int, product_id: int) -> None:
     """), {"user_id": user_id})
 
 
-def get_recently_viewed(db: Session, user_id: int):
+def get_recently_viewed(db: Session, user_id: int, limit: int = 20, offset: int = 0):
     rows = db.execute(text("""
         SELECT p.id, p.name, p.slug, p.base_price, p.discount_percent, p.status, p.is_sellable,
                p.created_at, p.updated_at
@@ -644,8 +758,8 @@ def get_recently_viewed(db: Session, user_id: int):
         JOIN products p ON p.id = rvp.product_id
         WHERE rvp.user_id = :user_id
         ORDER BY rvp.viewed_at DESC
-        LIMIT 20
-    """), {"user_id": user_id}).mappings().all()
+        LIMIT :limit OFFSET :offset
+    """), {"user_id": user_id, "limit": limit, "offset": offset}).mappings().all()
 
     product_ids = [r["id"] for r in rows]
 
@@ -704,7 +818,7 @@ def get_recently_viewed(db: Session, user_id: int):
     return results
 
 
-def get_related_products(db: Session, product_id: int, limit: int = 12):
+def get_related_products(db: Session, product_id: int, limit: int = 12, offset: int = 0):
     row = db.execute(text("""
         SELECT brand_id FROM products WHERE id = :id
     """), {"id": product_id}).mappings().first()
@@ -738,12 +852,13 @@ def get_related_products(db: Session, product_id: int, limit: int = 12):
                     AND pc3.category_id IN :category_ids
               )
             ORDER BY sort_rank ASC, p.id DESC
-            LIMIT :limit
+            LIMIT :limit OFFSET :offset
         """), {
             "product_id": product_id,
             "brand_id": brand_id,
             "category_ids": tuple(category_ids),
             "limit": limit,
+            "offset": offset,
         }).mappings().all()
 
         if rows:
@@ -1095,12 +1210,15 @@ def _get_category_and_descendant_ids(db, category_ids):
         parent_ids = new_ids
     return list(result)
 
-def _build_catalog_where(query, category_ids, brand_ids, gender_ids, color_ids, size_ids, min_price, max_price, is_admin=False):
+def _build_catalog_where(query, category_ids, brand_ids, gender_ids, color_ids, size_ids, min_price, max_price, is_admin=False, sales=False):
     clauses = []
     if not is_admin:
         clauses.extend(["status = 'active'", "is_sellable = 1"])
     params = {}
-    
+
+    if sales:
+        clauses.append("discount_percent > 0")
+
     if query:
         like = f"%{query.lower()}%"
         clauses.append("""(
@@ -1142,7 +1260,7 @@ def _build_catalog_where(query, category_ids, brand_ids, gender_ids, color_ids, 
     where = "WHERE " + " AND ".join(clauses) if clauses else ""
     return where, params
 
-def get_catalog_filters(db, query=None, category_ids=None, brand_ids=None, gender_ids=None, color_ids=None, size_ids=None, min_price=None, max_price=None, category_name=None, brand_name=None, is_admin=False):
+def get_catalog_filters(db, query=None, category_ids=None, brand_ids=None, gender_ids=None, color_ids=None, size_ids=None, min_price=None, max_price=None, category_name=None, brand_name=None, is_admin=False, sales=False):
     # Resolve category_name ONLY if no category IDs were supplied.
     if category_name and not category_ids:
         names = [n.strip().lower() for n in category_name.split(",") if n.strip()]
@@ -1163,7 +1281,7 @@ def get_catalog_filters(db, query=None, category_ids=None, brand_ids=None, gende
         resolved = [r["id"] for r in rows]
         brand_ids = (brand_ids or []) + resolved
 
-    base_where, params = _build_catalog_where(query, category_ids, brand_ids, gender_ids, color_ids, size_ids, min_price, max_price, is_admin=is_admin)
+    base_where, params = _build_catalog_where(query, category_ids, brand_ids, gender_ids, color_ids, size_ids, min_price, max_price, is_admin=is_admin, sales=sales)
     
     # Get product IDs for counting
     rows = db.execute(text(f"SELECT id FROM products {base_where}"), params).mappings().all()
@@ -1300,10 +1418,11 @@ def get_catalog_products_filtered(
     size_ids: List[int] = None,
     min_price: float = None,
     max_price: float = None,
-    sort_by: str = "featured",
+    sort_by: str = "newest",
     category_name: str = None,
     brand_name: str = None,
     is_admin: bool = False,
+    sales: bool = False,
 ) -> dict:
     if category_name and not category_ids:
         names = [n.strip().lower() for n in category_name.split(",") if n.strip()]
@@ -1324,7 +1443,7 @@ def get_catalog_products_filtered(
         resolved = [r["id"] for r in rows]
         brand_ids = (brand_ids or []) + resolved
 
-    where, params = _build_catalog_where(query, category_ids, brand_ids, gender_ids, color_ids, size_ids, min_price, max_price, is_admin=is_admin)
+    where, params = _build_catalog_where(query, category_ids, brand_ids, gender_ids, color_ids, size_ids, min_price, max_price, is_admin=is_admin, sales=sales)
 
     order_by = "id DESC"
     if sort_by == "newest":
@@ -1342,6 +1461,35 @@ def get_catalog_products_filtered(
         params,
     ).mappings().first()
     total = count_row["total"] if count_row else 0
+
+    count_params = dict(params)
+    color_filter = ""
+    if color_ids:
+        color_filter = " AND pv.color_id IN :variant_color_ids"
+        count_params["variant_color_ids"] = tuple(color_ids)
+
+    variant_total_row = db.execute(text(f"""
+        SELECT COUNT(DISTINCT pv.product_id, pv.color_id) as total
+        FROM product_variants pv
+        WHERE pv.is_active = 1
+        AND pv.color_id IS NOT NULL
+        AND pv.product_id IN (SELECT products.id FROM products {where})
+        {color_filter}
+    """), count_params).mappings().first()
+    variant_total = variant_total_row["total"] if variant_total_row else 0
+
+    no_color_row = db.execute(text(f"""
+        SELECT COUNT(*) as total
+        FROM products p
+        WHERE NOT EXISTS (
+            SELECT 1 FROM product_variants pv
+            WHERE pv.product_id = p.id AND pv.color_id IS NOT NULL AND pv.is_active = 1
+        )
+        AND p.id IN (SELECT products.id FROM products {where})
+    """), params).mappings().first()
+    no_color_total = no_color_row["total"] if no_color_row else 0
+
+    total = (variant_total or 0) + (no_color_total or 0)
 
     products = db.execute(text(f"""
         SELECT id, name, slug, base_price, discount_percent, status, is_sellable

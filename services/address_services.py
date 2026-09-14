@@ -217,6 +217,7 @@ def get_address(user_id: int, address_id: int, db: Session):
             address_type,
             delivery_instructions,
             is_default,
+            is_used_for_order,
             updated_at
         FROM addresses
         WHERE id = :address_id

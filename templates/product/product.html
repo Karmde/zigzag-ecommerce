@@ -308,6 +308,11 @@
 
         </div>
 
+        <div id="recentLoading" class="hidden items-center justify-center gap-2 pt-6 text-gray-500">
+            <div class="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-black"></div>
+            <span class="text-sm">Loading more...</span>
+        </div>
+
     </main>
 
 
@@ -357,36 +362,11 @@
             <div id="moreProducts"
                 class="grid grid-flow-col auto-cols-[calc((100%-3rem)/4)] gap-x-6 overflow-x-hidden scroll-smooth pr-12 pl-12">
 
-                {% for i in range(6) %}
-                <div onclick="window.location.href='/product'" class="cursor-pointer">
+            </div>
 
-                    <!-- Image Container -->
-                    <div class="relative rounded-lg overflow-hidden aspect-square">
-
-                        <img src="https://rukminim1.flixcart.com/image/1536/1536/ktketu80/mobile/a/i/l/iphone-13-mini-mlk93hn-a-apple-original-imag6vp6x67yypzk.jpeg?q=90"
-                            class="w-full h-full object-contain">
-
-                    </div>
-
-                    <div class="mt-3">
-
-                        <p class="text-[16px] font-semibold">
-                            Air Jordan 1 Low
-                        </p>
-
-                        <p class="text-[16px] text-gray-500 mt-1">
-                            Men's Shoes
-                        </p>
-
-                        <p class="text-[16px] font-medium mt-2">
-                            ₹8,995
-                        </p>
-
-                    </div>
-
-                </div>
-                {% endfor %}
-
+            <div id="moreLoading" class="hidden items-center justify-center gap-2 pt-6 text-gray-500">
+                <div class="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-black"></div>
+                <span class="text-sm">Loading more...</span>
             </div>
 
         </div>
@@ -628,8 +608,38 @@
             if (sizeContainer) {
                 const sizeButtons = sizeContainer.querySelectorAll('.size-option');
 
+                function getSelectedColorId() {
+                    const swatch = document.querySelector('.color-swatch.border-black');
+                    if (swatch && swatch.dataset.colorId) return parseInt(swatch.dataset.colorId, 10);
+                    return (productData.colors && productData.colors[0] && productData.colors[0].id) || null;
+                }
+
+                function isSizeAvailable(sizeId) {
+                    const colorId = getSelectedColorId();
+                    return (productData.variants || []).some(
+                        v => v.color_id === colorId && v.size_id === sizeId && v.is_active && v.stock_quantity > 0
+                    );
+                }
+
+                function updateSizeAvailability() {
+                    sizeButtons.forEach(btn => {
+                        const sizeId = parseInt(btn.dataset.sizeId, 10);
+                        if (!isSizeAvailable(sizeId)) {
+                            btn.disabled = true;
+                            btn.classList.add('opacity-40', 'cursor-not-allowed', 'bg-gray-100');
+                            btn.classList.remove('hover:border-black', 'transition', 'text-black');
+                            btn.classList.add('text-gray-400');
+                        } else {
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-40', 'cursor-not-allowed', 'bg-gray-100', 'text-gray-400');
+                            btn.classList.add('hover:border-black', 'transition', 'text-black');
+                        }
+                    });
+                }
+
                 sizeButtons.forEach((btn) => {
                     btn.addEventListener('click', () => {
+                        if (btn.disabled) return;
                         sizeButtons.forEach(b => {
                             b.classList.remove('border-black');
                             b.classList.add('border-gray-300');
@@ -639,6 +649,8 @@
                         applySize(parseInt(btn.dataset.sizeId, 10));
                     });
                 });
+
+                updateSizeAvailability();
 
                 if (sizeButtons.length > 0) {
                     sizeButtons.forEach(b => {
@@ -884,6 +896,7 @@
             if (sizeContainer) {
                 sizeContainer.querySelectorAll('.size-option').forEach(btn => {
                     btn.addEventListener('click', () => {
+                        if (btn.disabled) return;
                         hideError();
                         const selectedSizeId = parseInt(btn.dataset.sizeId, 10);
                         const colorId = getSelectedColorId();
@@ -1154,42 +1167,11 @@
         });
 
 
-        const MoreProductContainer = document.getElementById("moreProducts");
-
-        const card = MoreProductContainer.children[0];
-
-        function scrollAmount() {
-
-            const style = getComputedStyle(MoreProductContainer);
-
-            const gap = parseFloat(style.columnGap || style.gap);
-
-            return card.offsetWidth + gap;
-
-        }
-
-        document.getElementById("rightBtn").addEventListener("click", () => {
-
-            MoreProductContainer.scrollBy({
-                left: scrollAmount(),
-                behavior: "smooth"
-            });
-
-        });
-
-        document.getElementById("leftBtn").addEventListener("click", () => {
-
-            MoreProductContainer.scrollBy({
-                left: -scrollAmount(),
-                behavior: "smooth"
-            });
-
-        });
-
         // recently viewed products
         (async function () {
             const recentSection = document.getElementById('recentlyViewedSection');
             const recentContainer = document.getElementById('recentProducts');
+            const recentLoadingEl = document.getElementById('recentLoading');
             if (!recentSection || !recentContainer) return;
 
             const productId = productData && productData.id ? productData.id : null;
@@ -1198,41 +1180,23 @@
                 return;
             }
 
+            if (!window.auth || !window.auth.isLoggedIn) {
+                recentSection.classList.add('hidden');
+                return;
+            }
+
+            let recentOffset = 0;
+            const RECENT_PAGE_SIZE = 4;
+            let recentHasMore = true;
+            let recentLoading = false;
+
             try {
                 await window.auth.authFetch('/products/' + productId + '/viewed', { method: 'POST' });
             } catch (e) {
                 console.warn('[recently viewed] /viewed failed', e);
             }
 
-            let items = [];
-            try {
-                const res = await window.auth.authFetch('/products/recently-viewed');
-                if (res.ok) {
-                    items = await res.json();
-                } else {
-                    console.warn('[recently viewed] list status', res.status);
-                }
-            } catch (e) {
-                console.warn('[recently viewed] list failed', e);
-                items = [];
-            }
-
-            if (!items.length) {
-                recentSection.classList.add('hidden');
-                return;
-            }
-
-            const currentId = productData && productData.id ? productData.id : null;
-            const filtered = currentId != null ? items.filter(function (p) { return p.id !== currentId; }) : items;
-
-            if (!filtered.length) {
-                recentSection.classList.add('hidden');
-                return;
-            }
-
-            recentContainer.innerHTML = '';
-
-            filtered.forEach(function (p) {
+            function createRecentCard(p) {
                 const base = parseFloat(p.base_price) || 0;
                 const disc = parseFloat(p.discount_percent) || 0;
                 const salePrice = Math.round(base - (base * disc / 100));
@@ -1289,21 +1253,124 @@
 
                 card.appendChild(img);
                 card.appendChild(info);
-                recentContainer.appendChild(card);
-            });
+                return card;
+            }
 
-            const recentCard = recentContainer.children[0];
+            function showRecentLoading(show) {
+                if (recentLoadingEl) {
+                    recentLoadingEl.style.display = show ? 'flex' : 'none';
+                }
+            }
+
+            async function loadRecentPage(append) {
+                if (recentLoading) return;
+                if (!append && !recentHasMore) {
+                    recentSection.classList.add('hidden');
+                    return;
+                }
+                if (append && !recentHasMore) return;
+
+                recentLoading = true;
+                showRecentLoading(true);
+
+                const rightBtn = document.getElementById('recentRightBtn');
+                if (rightBtn) rightBtn.disabled = true;
+
+                try {
+                    const res = await window.auth.authFetch('/products/recently-viewed?limit=' + RECENT_PAGE_SIZE + '&offset=' + recentOffset);
+                    if (!res.ok) throw new Error('status ' + res.status);
+                    const items = await res.json();
+
+                    if (!append) {
+                        recentContainer.innerHTML = '';
+                        recentOffset = 0;
+                        recentHasMore = true;
+                    }
+
+                    if (!items.length && !append) {
+                        recentSection.classList.add('hidden');
+                        showRecentLoading(false);
+                        recentLoading = false;
+                        return;
+                    }
+
+                    if (!items.length) {
+                        recentHasMore = false;
+                        showRecentLoading(false);
+                        recentLoading = false;
+                        updateRecentButtons();
+                        return;
+                    }
+
+                    items.forEach(function (p) {
+                        const card = createRecentCard(p);
+                        recentContainer.appendChild(card);
+                    });
+
+                    recentOffset += items.length;
+                    recentHasMore = items.length === RECENT_PAGE_SIZE;
+                    showRecentLoading(false);
+
+                    if (!recentHasMore) {
+                        const rightBtn = document.getElementById('recentRightBtn');
+                        if (rightBtn) rightBtn.disabled = true;
+                    }
+                } catch (e) {
+                    console.warn('[recently viewed] load page failed', e);
+                    showRecentLoading(false);
+                    if (!append) {
+                        recentSection.classList.add('hidden');
+                    }
+                } finally {
+                    recentLoading = false;
+                    const rightBtn = document.getElementById('recentRightBtn');
+                    if (rightBtn && !recentHasMore) rightBtn.disabled = true;
+                }
+            }
 
             function recentScrollAmount() {
+                const recentCard = recentContainer.children[0];
+                if (!recentCard) return 300;
                 const gap = parseFloat(getComputedStyle(recentContainer).columnGap);
-                return recentCard.offsetWidth + gap;
+                return (recentCard.offsetWidth + gap) * 4;
+            }
+
+            function updateRecentButtons() {
+                const leftBtn = document.getElementById('recentLeftBtn');
+                const rightBtn = document.getElementById('recentRightBtn');
+                if (!recentContainer || !leftBtn || !rightBtn) return;
+                const { scrollLeft, scrollWidth, clientWidth } = recentContainer;
+                const atStart = scrollLeft <= 2;
+                const atEnd = scrollLeft + clientWidth >= scrollWidth - 2;
+                leftBtn.disabled = atStart;
+                rightBtn.disabled = atEnd && !recentHasMore || recentLoading;
+                leftBtn.style.opacity = leftBtn.disabled ? '0.4' : '1';
+                rightBtn.style.opacity = rightBtn.disabled ? '0.4' : '1';
             }
 
             document.getElementById('recentRightBtn').addEventListener('click', () => {
-                recentContainer.scrollBy({
-                    left: recentScrollAmount(),
-                    behavior: 'smooth'
-                });
+                if (recentLoading) return;
+                const { scrollLeft, scrollWidth, clientWidth } = recentContainer;
+                const remaining = scrollWidth - scrollLeft - clientWidth;
+                const step = recentScrollAmount();
+
+                if (remaining > 4) {
+                    recentContainer.scrollBy({
+                        left: step,
+                        behavior: 'smooth'
+                    });
+                } else if (recentHasMore) {
+                    loadRecentPage(true).then(function () {
+                        setTimeout(function () {
+                            const newStep = recentScrollAmount();
+                            recentContainer.scrollBy({
+                                left: newStep,
+                                behavior: 'smooth'
+                            });
+                            updateRecentButtons();
+                        }, 150);
+                    });
+                }
             });
 
             document.getElementById('recentLeftBtn').addEventListener('click', () => {
@@ -1311,6 +1378,13 @@
                     left: -recentScrollAmount(),
                     behavior: 'smooth'
                 });
+            });
+
+            recentContainer.addEventListener('scroll', updateRecentButtons, { passive: true });
+            window.addEventListener('resize', updateRecentButtons);
+
+            loadRecentPage(false).then(function () {
+                setTimeout(updateRecentButtons, 150);
             });
         })();
 
@@ -1320,6 +1394,7 @@
             const moreSection = moreTitle ? moreTitle.closest('main') : null;
             if (!moreSection || !productData) return;
             const moreContainer = document.getElementById('moreProducts');
+            const moreLoadingEl = document.getElementById('moreLoading');
             if (!moreContainer) return;
 
             const categories = (productData.categories || []);
@@ -1328,27 +1403,12 @@
                 moreTitle.textContent = 'More from ' + catName;
             }
 
-            let items = [];
-            try {
-                const res = await window.auth.authFetch('/products/related?product_id=' + productData.id + '&limit=12');
-                if (res.ok) {
-                    items = await res.json();
-                } else {
-                    console.warn('[related products] status', res.status, await res.text());
-                }
-            } catch (e) {
-                console.warn('[related products] fetch failed', e);
-                items = [];
-            }
+            let moreOffset = 0;
+            const MORE_PAGE_SIZE = 4;
+            let moreHasMore = true;
+            let moreLoading = false;
 
-            moreContainer.innerHTML = '';
-
-            if (!items.length) {
-                moreSection.classList.add('hidden');
-                return;
-            }
-
-            items.forEach(function (p) {
+            function createMoreCard(p) {
                 const base = parseFloat(p.base_price) || 0;
                 const disc = parseFloat(p.discount_percent) || 0;
                 const salePrice = Math.round(base - (base * disc / 100));
@@ -1405,21 +1465,124 @@
 
                 card.appendChild(img);
                 card.appendChild(info);
-                moreContainer.appendChild(card);
-            });
+                return card;
+            }
 
-            const moreCard = moreContainer.children[0];
+            function showMoreLoading(show) {
+                if (moreLoadingEl) {
+                    moreLoadingEl.style.display = show ? 'flex' : 'none';
+                }
+            }
+
+            async function loadMorePage(append) {
+                if (moreLoading) return;
+                if (!append && !moreHasMore) {
+                    moreSection.classList.add('hidden');
+                    return;
+                }
+                if (append && !moreHasMore) return;
+
+                moreLoading = true;
+                showMoreLoading(true);
+
+                const rightBtn = document.getElementById('rightBtn');
+                if (rightBtn) rightBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/products/related?product_id=' + productData.id + '&limit=' + MORE_PAGE_SIZE + '&offset=' + moreOffset);
+                    if (!res.ok) throw new Error('status ' + res.status);
+                    const items = await res.json();
+
+                    if (!append) {
+                        moreContainer.innerHTML = '';
+                        moreOffset = 0;
+                        moreHasMore = true;
+                    }
+
+                    if (!items.length && !append) {
+                        moreSection.classList.add('hidden');
+                        showMoreLoading(false);
+                        moreLoading = false;
+                        return;
+                    }
+
+                    if (!items.length) {
+                        moreHasMore = false;
+                        showMoreLoading(false);
+                        moreLoading = false;
+                        updateMoreButtons();
+                        return;
+                    }
+
+                    items.forEach(function (p) {
+                        const card = createMoreCard(p);
+                        moreContainer.appendChild(card);
+                    });
+
+                    moreOffset += items.length;
+                    moreHasMore = items.length === MORE_PAGE_SIZE;
+                    showMoreLoading(false);
+
+                    if (!moreHasMore) {
+                        const rightBtn = document.getElementById('rightBtn');
+                        if (rightBtn) rightBtn.disabled = true;
+                    }
+                } catch (e) {
+                    console.warn('[related products] load page failed', e);
+                    showMoreLoading(false);
+                    if (!append) {
+                        moreSection.classList.add('hidden');
+                    }
+                } finally {
+                    moreLoading = false;
+                    const rightBtn = document.getElementById('rightBtn');
+                    if (rightBtn && !moreHasMore) rightBtn.disabled = true;
+                }
+            }
 
             function moreScrollAmount() {
+                const moreCard = moreContainer.children[0];
+                if (!moreCard) return 300;
                 const gap = parseFloat(getComputedStyle(moreContainer).columnGap);
-                return moreCard.offsetWidth + gap;
+                return (moreCard.offsetWidth + gap) * 4;
+            }
+
+            function updateMoreButtons() {
+                const leftBtn = document.getElementById('leftBtn');
+                const rightBtn = document.getElementById('rightBtn');
+                if (!moreContainer || !leftBtn || !rightBtn) return;
+                const { scrollLeft, scrollWidth, clientWidth } = moreContainer;
+                const atStart = scrollLeft <= 2;
+                const atEnd = scrollLeft + clientWidth >= scrollWidth - 2;
+                leftBtn.disabled = atStart;
+                rightBtn.disabled = atEnd && !moreHasMore || moreLoading;
+                leftBtn.style.opacity = leftBtn.disabled ? '0.4' : '1';
+                rightBtn.style.opacity = rightBtn.disabled ? '0.4' : '1';
             }
 
             document.getElementById('rightBtn').addEventListener('click', () => {
-                moreContainer.scrollBy({
-                    left: moreScrollAmount(),
-                    behavior: 'smooth'
-                });
+                if (moreLoading) return;
+                const { scrollLeft, scrollWidth, clientWidth } = moreContainer;
+                const remaining = scrollWidth - scrollLeft - clientWidth;
+                const step = moreScrollAmount();
+
+                if (remaining > 4) {
+                    moreContainer.scrollBy({
+                        left: step,
+                        behavior: 'smooth'
+                    });
+                } else if (moreHasMore) {
+                    loadMorePage(true).then(function () {
+                        setTimeout(function () {
+                            const newStep = moreScrollAmount();
+                            moreContainer.scrollBy({
+                                left: newStep,
+                                behavior: 'smooth'
+                            });
+                            updateMoreButtons();
+                        }, 150);
+                    });
+                }
             });
 
             document.getElementById('leftBtn').addEventListener('click', () => {
@@ -1427,6 +1590,13 @@
                     left: -moreScrollAmount(),
                     behavior: 'smooth'
                 });
+            });
+
+            moreContainer.addEventListener('scroll', updateMoreButtons, { passive: true });
+            window.addEventListener('resize', updateMoreButtons);
+
+            loadMorePage(false).then(function () {
+                setTimeout(updateMoreButtons, 150);
             });
         })();
 

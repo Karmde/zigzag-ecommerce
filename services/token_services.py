@@ -1,8 +1,9 @@
 import hashlib
 import hmac
+import os
 import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from jwt import InvalidTokenError
@@ -344,3 +345,50 @@ def revoke_all_user_tokens(db: Session, user_id: int) -> None:
         WHERE user_id = :user_id AND revoked_at IS NULL
     """), {"now": datetime.now(timezone.utc).replace(tzinfo=None), "user_id": user_id})
     db.commit()
+
+
+# ============================================================
+# Order confirmation tokens — short-lived signed JWTs
+# ============================================================
+
+CONFIRMATION_TOKEN_EXPIRE_MINUTES = int(
+    os.environ.get("CONFIRMATION_TOKEN_EXPIRE_MINUTES", "60")
+)
+
+CONFIRMATION_TOKEN_EXPIRE_DELTA = timedelta(
+    minutes=CONFIRMATION_TOKEN_EXPIRE_MINUTES
+)
+
+
+def create_order_confirmation_token(order_id: int, user_id: int) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "type": "order_confirmation",
+        "order_id": order_id,
+        "user_id": user_id,
+        "iat": now,
+        "exp": now + CONFIRMATION_TOKEN_EXPIRE_DELTA,
+    }
+    return jwt.encode(payload, JWT_ACCESS_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def decode_order_confirmation_token(token: str) -> dict | None:
+    try:
+        payload = jwt.decode(
+            token,
+            JWT_ACCESS_SECRET,
+            algorithms=[JWT_ALGORITHM],
+        )
+    except InvalidTokenError:
+        return None
+
+    if payload.get("type") != "order_confirmation":
+        return None
+
+    try:
+        return {
+            "order_id": int(payload["order_id"]),
+            "user_id": int(payload["user_id"]),
+        }
+    except (KeyError, TypeError, ValueError):
+        return None

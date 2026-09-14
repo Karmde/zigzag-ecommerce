@@ -58,7 +58,7 @@ def get_wishlist(db: Session, user_id: int) -> list[dict]:
         text("""
             SELECT w.id, w.user_id, w.product_variant_id,
                    w.created_at AS created_at,
-                   pv.product_id, pv.sku, pv.price_override, pv.stock_quantity, pv.is_active,
+                   pv.product_id, pv.color_id, pv.sku, pv.price_override, pv.stock_quantity, pv.is_active,
                    p.name AS product_name, p.slug AS product_slug, p.base_price, p.discount_percent,
                    c.name AS color_name, c.hex AS color_hex,
                    s.name AS size_name,
@@ -126,6 +126,8 @@ def get_wishlist(db: Session, user_id: int) -> list[dict]:
             "id": r["id"],
             "user_id": r["user_id"],
             "product_variant_id": r["product_variant_id"],
+            "product_id": r["product_id"],
+            "color_id": r["color_id"],
             "sku": r["sku"],
             "product_name": r["product_name"],
             "product_slug": r["product_slug"],

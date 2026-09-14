@@ -1,6 +1,7 @@
 const ADDRESS_API = "/address";
 const PINCODE_API = "https://api.postalpincode.in/pincode";
 
+let selectedCheckoutAddressId = null;
 let editingAddressId = null;
 let deleteAddressId = null;
 let pinRequest = null;
@@ -245,6 +246,140 @@ function renderAddresses(addresses) {
         .join("");
 }
 
+function renderCheckoutAddresses(addresses) {
+    const checkoutListEl = document.getElementById("checkout-address-list");
+    if (!checkoutListEl) return;
+
+    if (addresses.length === 0) {
+        checkoutListEl.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <svg class="h-12 w-12 text-black/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z" />
+                    <circle cx="12" cy="10" r="2.2" />
+                </svg>
+                <p class="text-sm text-black/50">No addresses saved yet.</p>
+                <p class="text-xs text-black/35 mt-1">Click "Add New Address" to get started.</p>
+            </div>
+        `;
+        return;
+    }
+
+     checkoutListEl.innerHTML = addresses
+         .map(
+             (addr) => {
+                 const isDefault = addr.is_default;
+                 const typeLabel = addr.address_type
+                     ? addr.address_type.charAt(0).toUpperCase() + addr.address_type.slice(1)
+                     : "Other";
+
+                 return `
+                 <article class="checkout-address-card group relative border border-black/10 bg-white p-6 transition duration-300 hover:border-black/25" data-address-id="${addr.id}">
+                     <div class="flex items-start justify-between gap-5">
+                         <div class="flex items-center gap-4">
+                             <div class="checkout-avatar flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${isDefault ? "bg-black text-sm font-medium text-white" : "border border-black/10 text-sm font-medium"}">
+                                 ${getInitials(addr.full_name)}
+                             </div>
+                             <div>
+                                 <h2 class="text-base font-semibold tracking-tight">${escapeHtml(addr.full_name)}</h2>
+                                 <p class="mt-1 text-sm text-black/50">${escapeHtml(addr.phone_number)}</p>
+                             </div>
+                         </div>
+                         <span class="checkout-selected-badge"></span>
+                     </div>
+
+                     <div class="mt-7 border-t border-black/10 pt-6">
+                         <div class="flex gap-4">
+                             <div class="mt-0.5 shrink-0">
+                                 <svg class="h-5 w-5 text-black/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z" />
+                                     <circle cx="12" cy="10" r="2.2" />
+                                 </svg>
+                             </div>
+                             <div class="text-sm leading-6 text-black/70">
+                                 <p>${escapeHtml(addr.address)}${addr.landmark ? `, ${escapeHtml(addr.landmark)}` : ""}</p>
+                                 <p>${escapeHtml(addr.city)}, ${escapeHtml(addr.state)} — ${escapeHtml(addr.postal_code)}</p>
+                                 <p>${escapeHtml(addr.country)}</p>
+                             </div>
+                         </div>
+                     </div>
+
+                     <div class="mt-6">
+                         <span class="inline-flex items-center border border-black/10 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-black/55">
+                             ${typeLabel}
+                         </span>
+                     </div>
+
+                     <div class="mt-7 flex items-center justify-between border-t border-black/10 pt-5">
+                         ${!isDefault ? `<button type="button" onclick="addressesJS.selectCheckoutAddress(${addr.id})" class="inline-flex items-center justify-center bg-black px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-gray-800">Deliver here</button>` : `<span class="text-xs font-medium text-black/40">This address will be used for delivery</span>`}
+                     </div>
+                 </article>
+                 `;
+             }
+         )
+         .join("");
+}
+
+async function fetchCheckoutAddresses() {
+    const checkoutListEl = document.getElementById("checkout-address-list");
+    if (!checkoutListEl) return;
+
+    checkoutListEl.innerHTML = `<p class="text-sm text-black/50">Loading addresses...</p>`;
+
+    try {
+        const response = await window.auth.authFetch(ADDRESS_API);
+        if (!response.ok) {
+            throw new Error("Failed to fetch addresses");
+        }
+        const addresses = await response.json();
+        selectedCheckoutAddressId = addresses.find((addr) => addr.is_default)?.id || addresses[0]?.id || null;
+        renderCheckoutAddresses(addresses);
+    } catch (error) {
+        console.error("Error fetching checkout addresses:", error);
+        checkoutListEl.innerHTML = `<p class="text-sm text-red-600">Failed to load addresses. Please try again.</p>`;
+    }
+}
+
+async function selectCheckoutAddress(addressId) {
+    selectedCheckoutAddressId = addressId;
+    updateCheckoutSelection(addressId);
+    showToast("Success", "Delivery address selected.", "success");
+}
+
+function updateCheckoutSelection(selectedId) {
+    const cards = document.querySelectorAll(".checkout-address-card");
+    cards.forEach((card) => {
+        const cardId = parseInt(card.getAttribute("data-address-id"), 10);
+        const isSelected = cardId === selectedId;
+
+        const badge = card.querySelector(".checkout-selected-badge");
+        if (badge) {
+            badge.innerHTML = isSelected
+                ? `<span class="inline-flex items-center gap-1.5 border border-black bg-black px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-white">
+                    <span class="h-1.5 w-1.5 rounded-full bg-white"></span> Selected
+                   </span>`
+                : "";
+        }
+
+        const avatar = card.querySelector(".checkout-avatar");
+        if (avatar) {
+            if (isSelected) {
+                avatar.classList.remove("border", "border-black/10", "text-black");
+                avatar.classList.add("bg-black", "text-white");
+            } else {
+                avatar.classList.remove("bg-black", "text-white");
+                avatar.classList.add("border", "border-black/10");
+            }
+        }
+
+        const actionArea = card.querySelector(".mt-7.flex.items-center.justify-between");
+        if (actionArea) {
+            actionArea.innerHTML = isSelected
+                ? `<span class="text-xs font-medium text-black/40">This address will be used for delivery</span>`
+                : `<button type="button" onclick="addressesJS.selectCheckoutAddress(${cardId})" class="inline-flex items-center justify-center bg-black px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-gray-800">Deliver here</button>`;
+        }
+    });
+}
+
 function escapeHtml(text) {
     if (!text) return "";
     const div = document.createElement("div");
@@ -324,6 +459,7 @@ async function handleFormSubmit(e) {
             );
             closeAddressModal();
             fetchAddresses();
+            fetchCheckoutAddresses();
         } else {
             const data = await response.json().catch(() => ({}));
             const errorMsg = data.detail || data.message || "Failed to save address.";
@@ -516,4 +652,7 @@ window.addressesJS = {
     editAddress,
     deleteAddress,
     makeDefault,
+    renderCheckoutAddresses,
+    fetchCheckoutAddresses,
+    selectCheckoutAddress,
 };

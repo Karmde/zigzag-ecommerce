@@ -65,3 +65,4 @@ class CouponVerifyResponse(BaseModel):
     coupon: Optional[CouponResponse] = None
     discount_amount: Optional[float] = None
     final_amount: Optional[float] = None
+    eligible_item_ids: List[int] = Field(default_factory=list)

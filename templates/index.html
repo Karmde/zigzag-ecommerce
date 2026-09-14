@@ -534,122 +534,43 @@
                 <!-- Products Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-12">
 
-                    <a href="/product">
+{% for product in favorite_products %}
+                    <a href="/product?id={{ product.id }}">
                         <div>
 
                             <!-- Image Container -->
                             <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://adn-static1.nykaa.com/nykdesignstudio-images/pub/media/catalog/product/a/d/ad22b92Nike-II9812-100_1.jpg?rnd=20200526195200&tr=w-1080"
-                                    alt="Product" class="w-full h-full object-cover">
+                                {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-contain">
+                                {% else %}
+                                <div class="img-placeholder w-full h-full">No image</div>
+                                {% endif %}
                             </div>
 
                             <!-- Product Info -->
                             <div class="mt-3">
 
                                 <p class="text-[16px] font-semibold text-black">
-                                    Air Jordan 1 Mid SE
+                                    {{ product.name }}
                                 </p>
 
+                                {% if product.category_name %}
                                 <p class="text-[16px] text-gray-500 mt-1">
-                                    Nike Air Jordan 1 Mid SE Men's Shoes
+                                    {{ product.category_name }}
                                 </p>
+                                {% endif %}
 
                                 <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹12,295
+                                    ₹{{ product.base_price | inr }}
                                 </p>
 
                             </div>
 
                         </div>
                     </a>
-
-
-                    <a href="/product">
-                        <div>
-
-                            <!-- Image Container -->
-                            <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://adn-static1.nykaa.com/nykdesignstudio-images/pub/media/catalog/product/a/d/ad22b92Nike-IB7110-100_1.jpg?rnd=20200526195200&tr=w-1080"
-                                    alt="Product" class="w-full h-full object-cover">
-                            </div>
-
-                            <!-- Product Info -->
-                            <div class="mt-3">
-
-                                <p class="text-[16px] font-semibold text-black">
-                                    Air Jordan 1 Low
-                                </p>
-
-                                <p class="text-[16px] text-gray-500 mt-1">
-                                    Men's Shoes
-                                </p>
-
-                                <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹8,995
-                                </p>
-
-                            </div>
-
-                        </div>
-                    </a>
-
-                    <a href="/product">
-                        <div>
-
-                            <!-- Image Container -->
-                            <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://adn-static1.nykaa.com/nykdesignstudio-images/pub/media/catalog/product/a/d/ad22b92Nike-IB1041-068_1.jpg?rnd=20200526195200&tr=w-1080"
-                                    alt="Product" class="w-full h-full object-cover">
-                            </div>
-
-                            <!-- Product Info -->
-                            <div class="mt-3">
-
-                                <p class="text-[16px] font-semibold text-black">
-                                    Jordan Brooklyn
-                                </p>
-
-                                <p class="text-[16px] text-gray-500 mt-1">
-                                    Nike Jordan Brooklyn Men's Polo
-                                </p>
-
-                                <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹2,796
-                                </p>
-
-                            </div>
-
-                        </div>
-                    </a>
-
-                    <a href="/product">
-                        <div>
-
-                            <!-- Image Container -->
-                            <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://adn-static1.nykaa.com/nykdesignstudio-images/pub/media/catalog/product/a/d/ad22b92Nike-IF1925-133_1.jpg?rnd=20200526195200&tr=w-1080"
-                                    alt="Product" class="w-full h-full object-cover">
-                            </div>
-
-                            <!-- Product Info -->
-                            <div class="mt-3">
-
-                                <p class="text-[16px] font-semibold text-black">
-                                    Jordan Brooklyn
-                                </p>
-
-                                <p class="text-[16px] text-gray-500 mt-1">
-                                    Nike Jordan Brooklyn Men's Terrace Top
-                                </p>
-
-                                <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹4,295
-                                </p>
-
-                            </div>
-
-                        </div>
-                    </a>
+                    {% else %}
+                    <p class="text-gray-500">No products available.</p>
+                    {% endfor %}
 
 
 
@@ -733,122 +654,43 @@
                 <!-- Products Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-12">
 
-                    <a href="/product">
+{% for product in latest_products %}
+                    <a href="/product?id={{ product.id }}">
                         <div>
 
                             <!-- Image Container -->
                             <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://m.media-amazon.com/images/I/71KmP-oCBBL._SX679_.jpg" alt="Product"
-                                    class="w-full h-full object-cover">
+                                {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-contain">
+                                {% else %}
+                                <div class="img-placeholder w-full h-full">No image</div>
+                                {% endif %}
                             </div>
 
                             <!-- Product Info -->
                             <div class="mt-3">
 
                                 <p class="text-[16px] font-semibold text-black">
-                                    ASUS ROG Strix G16
+                                    {{ product.name }}
                                 </p>
 
+                                {% if product.category_name %}
                                 <p class="text-[16px] text-gray-500 mt-1">
-                                    ASUS ROG Strix G16 Gaming Laptop
+                                    {{ product.category_name }}
                                 </p>
+                                {% endif %}
 
                                 <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹1,54,990
+                                    ₹{{ product.base_price | inr }}
                                 </p>
 
                             </div>
 
                         </div>
                     </a>
-
-
-                    <a href="/product">
-                        <div>
-
-                            <!-- Image Container -->
-                            <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://m.media-amazon.com/images/I/51qcJKGmDXL._SX679_.jpg" alt="Product"
-                                    class="w-full h-full object-cover">
-                            </div>
-
-                            <!-- Product Info -->
-                            <div class="mt-3">
-
-                                <p class="text-[16px] font-semibold text-black">
-                                    Sony Ps5 Controller
-                                </p>
-
-                                <p class="text-[16px] text-gray-500 mt-1">
-                                    controller
-                                </p>
-
-                                <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹17,595
-                                </p>
-
-                            </div>
-
-                        </div>
-                    </a>
-
-                    <a href="/product">
-                        <div>
-
-                            <!-- Image Container -->
-                            <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://m.media-amazon.com/images/I/31LOtLrQydL._SY300_SX300_QL70_FMwebp_.jpg"
-                                    alt="Product" class="w-full h-full object-cover">
-                            </div>
-
-                            <!-- Product Info -->
-                            <div class="mt-3">
-
-                                <p class="text-[16px] font-semibold text-black">
-                                    Apple AirPods Pro 3
-                                </p>
-
-                                <p class="text-[16px] text-gray-500 mt-1">
-                                    Airpods
-                                </p>
-
-                                <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹2,796
-                                </p>
-
-                            </div>
-
-                        </div>
-                    </a>
-
-                    <a href="/product">
-                        <div>
-
-                            <!-- Image Container -->
-                            <div class="relative rounded-lg overflow-hidden aspect-square">
-                                <img src="https://m.media-amazon.com/images/I/71JGCn1z1TL._SX679_.jpg" alt="Product"
-                                    class="w-full h-full object-cover">
-                            </div>
-
-                            <!-- Product Info -->
-                            <div class="mt-3">
-
-                                <p class="text-[16px] font-semibold text-black">
-                                    Apple iPhone 17 Pro
-                                </p>
-
-                                <p class="text-[16px] text-gray-500 mt-1">
-                                    Smartphone
-                                </p>
-
-                                <p class="text-[16px] font-medium text-black mt-2">
-                                    ₹4,44,295
-                                </p>
-
-                            </div>
-
-                        </div>
-                    </a>
+                    {% else %}
+                    <p class="text-gray-500">No products available.</p>
+                    {% endfor %}
 
                 </div>
 

@@ -24,7 +24,7 @@
                 </p>
 
                 <p class="text-[28px] font-semibold tracking-tight" id="productCount">
-                    {% if search_query %}{{ search_query }} ({{ products|length }}){% else %}{{ products|length }}
+                    {% if search_query %}{{ search_query }} ({{ total_products|default(products|length) }}){% else %}{{ total_products|default(products|length) }}
                     products{% endif %}
                 </p>
             </div>
@@ -70,10 +70,6 @@
 
                     <div id="sortDropdown"
                         class="hidden absolute right-0 top-full mt-3 w-56 bg-white border rounded-lg shadow-lg z-50">
-
-                        <button data-sort="featured" class="sort-option w-full text-left px-4 py-3 hover:bg-gray-100">
-                            Featured
-                        </button>
 
                         <button data-sort="newest" class="sort-option w-full text-left px-4 py-3 hover:bg-gray-100">
                             Newest
@@ -129,9 +125,9 @@
                         <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
                             data-target="categoryFilters" data-filter="category">
                             <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-black">
+                                <p class="font-semibold text-black">
                                     Category
-                                </h3>
+                                </p>
                                 <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
                                     data-filter="category">Clear</button>
                             </div>
@@ -156,9 +152,9 @@
                         <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
                             data-target="genderFilters" data-filter="gender">
                             <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-black">
+                                <p class="font-semibold text-black">
                                     Gender
-                                </h3>
+                                </p>
                                 <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
                                     data-filter="gender">Clear</button>
                             </div>
@@ -183,9 +179,9 @@
                         <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
                             data-target="priceFilters" data-filter="price">
                             <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-black">
+                                <p class="font-semibold text-black">
                                     Price Range
-                                </h3>
+                                </p>
                                 <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
                                     data-filter="price">Clear</button>
                             </div>
@@ -204,15 +200,40 @@
 
                     </div>
 
+                    <!-- Sales -->
+                    <div class="py-6 border-t border-gray-200">
+
+                        <div class="flex items-center justify-between mb-5 cursor-pointer"
+                            id="salesFilterToggle">
+
+                            <div class="flex items-center gap-2">
+                                <p class="font-semibold text-black">
+                                    Sale
+                                </p>
+                                <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
+                                    data-filter="sales">Clear</button>
+                            </div>
+
+                            <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                                <input type="checkbox" id="salesToggle" class="sr-only peer">
+                                <div
+                                    class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black">
+                                </div>
+                            </label>
+
+                        </div>
+
+                    </div>
+
                     <!-- Brand -->
                     <div class="py-6 border-t border-gray-200">
 
                         <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
                             data-target="brandFilters" data-filter="brand">
                             <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-black">
+                                <p class="font-semibold text-black">
                                     Brand
-                                </h3>
+                                </p>
                                 <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
                                     data-filter="brand">Clear</button>
                             </div>
@@ -237,9 +258,9 @@
                         <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
                             data-target="colorFilters" data-filter="color">
                             <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-black">
+                                <p class="font-semibold text-black">
                                     Color
-                                </h3>
+                                </p>
                                 <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
                                     data-filter="color">Clear</button>
                             </div>
@@ -264,9 +285,9 @@
                         <div class="flex items-center justify-between mb-5 cursor-pointer filter-toggle"
                             data-target="sizeFilters" data-filter="size">
                             <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-black">
+                                <p class="font-semibold text-black">
                                     Size
-                                </h3>
+                                </p>
                                 <button class="clear-section-filter text-gray-400 hover:text-red-500 text-xs hidden"
                                     data-filter="size">Clear</button>
                             </div>
@@ -356,6 +377,9 @@
 
             </div>
 
+            <div id="scrollSentinel" class="h-4"></div>
+            <div id="loadingIndicator" class="text-center py-4 text-gray-500 hidden">Loading more products...</div>
+
         </main>
 
     </div>
@@ -375,8 +399,15 @@
         </a>
     </template>
     <script>
+        window.__CATALOG_INITIAL__ = {
+            products: {{ products | tojson | safe }},
+            total: {{ total_products | default(0) }}
+        };
+    </script>
+    <script>
         (function () {
             const API_BASE = '/catalog';
+            const PAGE_SIZE = 15;
             const state = {
                 q: '{{ search_query or "" }}',
                 category: [],
@@ -386,9 +417,14 @@
                 size: [],
                 min_price: null,
                 max_price: null,
-                sort: 'featured',
+                sort: 'newest',
                 category_name: '',
                 brand_name: '',
+                sales: false,
+                page: 1,
+                hasNext: false,
+                isLoading: false,
+                totalCount: 0,
             };
 
             const els = {
@@ -409,6 +445,8 @@
                 filterText: document.getElementById('filterText'),
             };
 
+            let requestId = 0;
+            let currentAbortController = null;
             let initialNameFilterApplied = false;
 
             function initStateFromURL() {
@@ -444,6 +482,9 @@
                 if (urlParams.has('sort')) {
                     state.sort = urlParams.get('sort');
                 }
+                if (urlParams.has('sales')) {
+                    state.sales = urlParams.get('sales') === 'true';
+                }
             }
 
             function getQueryString() {
@@ -459,6 +500,7 @@
                 if (state.category_name) params.set('category_name', state.category_name);
                 if (state.brand_name) params.set('brand_name', state.brand_name);
                 params.set('sort', state.sort);
+                if (state.sales) params.set('sales', 'true');
                 return params.toString();
             }
 
@@ -470,7 +512,7 @@
 
             function clearBtnVisible() {
                 const hasFilters = state.category.length || state.brand.length || state.gender.length ||
-                    state.color.length || state.size.length || state.min_price !== null || state.max_price !== null;
+                    state.color.length || state.size.length || state.min_price !== null || state.max_price !== null || state.sales;
                 els.clearBtn.classList.toggle('hidden', !hasFilters);
 
                 document.querySelectorAll('.clear-section-filter').forEach(btn => {
@@ -483,15 +525,37 @@
                         case 'color': hasThisFilter = state.color.length > 0; break;
                         case 'size': hasThisFilter = state.size.length > 0; break;
                         case 'price': hasThisFilter = state.min_price !== null || state.max_price !== null; break;
+                        case 'sales': hasThisFilter = state.sales; break;
                     }
                     btn.classList.toggle('hidden', !hasThisFilter);
                 });
             }
 
-            async function fetchJSON(url) {
-                const res = await fetch(url);
+            async function fetchJSON(url, options) {
+                const res = await fetch(url, options || {});
                 if (!res.ok) throw new Error('Failed: ' + res.status);
                 return res.json();
+            }
+
+            function updateLoadingIndicator() {
+                const indicator = document.getElementById('loadingIndicator');
+                if (indicator) {
+                    indicator.classList.toggle('hidden', !(state.isLoading && state.hasNext));
+                }
+            }
+
+            function setupInfiniteScroll() {
+                const sentinel = document.getElementById('scrollSentinel');
+                if (!sentinel) return;
+                if (window.__catalogScrollObserver__) {
+                    window.__catalogScrollObserver__.disconnect();
+                }
+                window.__catalogScrollObserver__ = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting && !state.isLoading && state.hasNext) {
+                        loadProducts(false);
+                    }
+                }, { rootMargin: '200px' });
+                window.__catalogScrollObserver__.observe(sentinel);
             }
 
             function renderFilters(filters) {
@@ -548,7 +612,7 @@
                             }
 
                             clearBtnVisible();
-                            loadProducts();
+                            loadProducts(true);
                             loadFilters();
                         });
 
@@ -577,7 +641,7 @@
                         'w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black';
                     minInput.addEventListener('change', () => {
                         state.min_price = minInput.value ? parseFloat(minInput.value) : null;
-                        loadProducts();
+                        loadProducts(true);
                         loadFilters();
                     });
 
@@ -593,7 +657,7 @@
                         'w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-black';
                     maxInput.addEventListener('change', () => {
                         state.max_price = maxInput.value ? parseFloat(maxInput.value) : null;
-                        loadProducts();
+                        loadProducts(true);
                         loadFilters();
                     });
 
@@ -606,15 +670,19 @@
                 clearBtnVisible();
             }
 
-            function renderProducts(products) {
-                els.grid.innerHTML = '';
+            function renderProducts(products, append) {
+                if (!append) {
+                    els.grid.innerHTML = '';
+                }
                 if (!products.length) {
-                    els.grid.innerHTML =
-                        '<div class="col-span-full text-center py-20 text-gray-500 text-lg">No products found.</div>';
-                    els.count.textContent = '0 variants';
+                    if (!append) {
+                        els.grid.innerHTML =
+                            '<div class="col-span-full text-center py-20 text-gray-500 text-lg" id="noProducts">No products found.</div>';
+                        els.count.textContent = state.q ? state.q + ' (0)' : '0 products';
+                    }
                     return;
                 }
-                let totalCards = 0;
+                let totalCards = append ? els.grid.querySelectorAll('a.block').length : 0;
                 const template = document.getElementById('productCardTemplate');
                 products.forEach(p => {
                     totalCards++;
@@ -700,7 +768,7 @@
                     els.grid.appendChild(clone);
                 });
 
-                const countText = state.q ? state.q + ' (' + totalCards + ')' : totalCards + ' variants';
+                const countText = state.q ? state.q + ' (' + state.totalCount + ')' : state.totalCount + ' products';
                 els.count.textContent = countText;
             }
             function formatINR(value) {
@@ -772,20 +840,63 @@
                     }
                 }
 
-                if (changed) {
-                    loadProducts();
+                if (changed && !window.__catalogInitialLoad) {
+                    loadProducts(true);
                 }
             }
 
-            async function loadProducts() {
-                const qs = getQueryString();
-                try {
-                    const data = await fetchJSON(API_BASE + '/products?' + qs);
+            async function loadProducts(reset) {
+                const currentRequestId = ++requestId;
 
-                    renderProducts(data.products);
-                    updateURL();
+                if (!reset && state.isLoading) return;
+
+                if (reset) {
+                    state.page = 1;
+                    state.hasNext = true;
+                    if (currentAbortController) {
+                        currentAbortController.abort();
+                    }
+                    currentAbortController = new AbortController();
+                }
+
+                if (!state.hasNext && !reset) return;
+
+                state.isLoading = true;
+                updateLoadingIndicator();
+
+                const params = new URLSearchParams(getQueryString());
+                params.set('page', state.page);
+                params.set('limit', PAGE_SIZE);
+
+                try {
+                    const data = await fetchJSON(API_BASE + '/products?' + params.toString(), {
+                        signal: currentAbortController ? currentAbortController.signal : undefined
+                    });
+
+                    if (currentRequestId !== requestId) return;
+
+                    if (reset) {
+                        state.totalCount = data.total || 0;
+                        renderProducts(data.products, false);
+                    } else {
+                        renderProducts(data.products, true);
+                    }
+
+                    state.page++;
+                    state.hasNext = data.has_next;
+
+                    if (reset) {
+                        updateURL();
+                    }
                 } catch (e) {
+                    if (e.name === 'AbortError') return;
+                    if (currentRequestId !== requestId) return;
                     console.error(e);
+                } finally {
+                    if (currentRequestId === requestId) {
+                        state.isLoading = false;
+                        updateLoadingIndicator();
+                    }
                 }
             }
 
@@ -803,7 +914,7 @@
                 btn.addEventListener('click', () => {
                     state.sort = btn.dataset.sort;
                     clearBtnVisible();
-                    loadProducts();
+                    loadProducts(true);
                 });
             });
 
@@ -838,11 +949,35 @@
                             state.min_price = null;
                             state.max_price = null;
                             break;
+                        case 'sales':
+                            state.sales = false;
+                            document.getElementById('salesToggle').checked = false;
+                            break;
                     }
                     loadFilters();
-                    loadProducts();
+                    loadProducts(true);
                 });
             });
+
+            const salesToggle = document.getElementById('salesToggle');
+            const salesFilterToggle = document.getElementById('salesFilterToggle');
+            if (salesToggle && salesFilterToggle) {
+                salesToggle.checked = state.sales;
+
+                salesFilterToggle.addEventListener('click', (e) => {
+                    if (e.target.closest('.clear-section-filter')) return;
+                    state.sales = !state.sales;
+                    salesToggle.checked = state.sales;
+                    clearBtnVisible();
+                    loadProducts(true);
+                });
+
+                salesToggle.addEventListener('change', () => {
+                    state.sales = salesToggle.checked;
+                    clearBtnVisible();
+                    loadProducts(true);
+                });
+            }
 
             els.clearBtn.addEventListener('click', () => {
                 state.category = [];
@@ -852,18 +987,46 @@
                 state.size = [];
                 state.min_price = null;
                 state.max_price = null;
-                state.sort = 'featured';
+                state.sales = false;
+                state.sort = 'newest';
+                const st = document.getElementById('salesToggle');
+                if (st) st.checked = false;
                 loadFilters();
-                loadProducts();
+                loadProducts(true);
             });
 
             window.addEventListener('popstate', () => {
-                loadProducts();
+                initStateFromURL();
+                loadProducts(true);
                 loadFilters();
             });
 
             initStateFromURL();
-            loadFilters();
+            if (salesToggle) salesToggle.checked = state.sales;
+
+            window.__catalogInitialLoad = true;
+            loadFilters().then(() => {
+                window.__catalogInitialLoad = false;
+            });
+
+            const initial = (typeof window.__CATALOG_INITIAL__ !== 'undefined') ? window.__CATALOG_INITIAL__ : null;
+            if (initial && initial.products && initial.products.length > 0) {
+                state.totalCount = initial.total || 0;
+                renderProducts(initial.products, false);
+                state.page = 2;
+                state.hasNext = initial.products.length < initial.total;
+            } else if (initial && initial.total > 0) {
+                state.page = 1;
+                state.hasNext = true;
+                state.totalCount = initial.total || 0;
+                loadProducts(true);
+            } else {
+                state.page = 1;
+                state.hasNext = false;
+                state.totalCount = 0;
+            }
+
+            setupInfiniteScroll();
         })();
 </script>
 </body>

@@ -74,10 +74,10 @@ def add_to_cart(db: Session, user_id: int, payload: AddToCartRequest) -> AddToCa
 def get_cart(db: Session, user_id: int) -> list[dict]:
     rows = db.execute(
         text("""
-            SELECT ci.id, ci.user_id, ci.product_variant_id, ci.quantity,
+            SELECT ci.id, ci.user_id, ci.product_variant_id, ci.quantity, ci.coupon_id,
                 pv.product_id, pv.sku, pv.price_override, pv.stock_quantity, pv.is_active,
                 p.name AS product_name, p.slug AS product_slug,
-                p.base_price, p.discount_percent,
+                p.base_price, p.discount_percent, p.discount_start, p.discount_end,
                 c.name AS color_name, c.hex AS color_hex,
                 s.name AS size_name,
                 vi.url AS image_url,
@@ -122,7 +122,7 @@ def get_cart(db: Session, user_id: int) -> list[dict]:
 
     cat_rows = db.execute(
         text("""
-            SELECT pc.product_id, c.name
+            SELECT pc.product_id, c.id AS category_id, c.name
             FROM product_categories AS pc
             JOIN categories AS c ON c.id = pc.category_id
             WHERE pc.product_id IN :ids
@@ -132,9 +132,13 @@ def get_cart(db: Session, user_id: int) -> list[dict]:
     ).mappings().all()
 
     categories = {}
+    category_ids_map = {}
     for r in cat_rows:
         if r["product_id"] not in categories:
             categories[r["product_id"]] = r["name"]
+        if r["product_id"] not in category_ids_map:
+            category_ids_map[r["product_id"]] = []
+        category_ids_map[r["product_id"]].append(r["category_id"])
 
     cart_items = []
     for r in rows:
@@ -154,6 +158,7 @@ def get_cart(db: Session, user_id: int) -> list[dict]:
             "user_id": r["user_id"],
             "product_variant_id": r["product_variant_id"],
             "quantity": r["quantity"],
+            "coupon_id": r["coupon_id"],
             "sku": r["sku"],
             "product_name": r["product_name"],
             "product_slug": r["product_slug"],
@@ -164,14 +169,99 @@ def get_cart(db: Session, user_id: int) -> list[dict]:
             "unit_price": unit_price,
             "base_price": base,
             "discount_percent": disc,
+            "price_override": price_override,
+            "discount_start": r["discount_start"],
+            "discount_end": r["discount_end"],
             "stock_quantity": r["stock_quantity"],
             "is_active": bool(r["is_active"]),
+            "product_id": r["product_id"],
+            "category_ids": category_ids_map.get(r["product_id"], []),
             "category_name": categories.get(r["product_id"], ""),
             "created_at": r["created_at"],
             "updated_at": r["updated_at"],
         });
 
     return cart_items
+
+
+def apply_coupon(
+    db: Session,
+    user_id: int,
+    coupon_id: int,
+    cart_item_ids: list[int] | None = None,
+) -> dict:
+    if cart_item_ids:
+        result = db.execute(
+            text("""
+                UPDATE cart_items
+                SET coupon_id = :coupon_id, updated_at = :updated_at
+                WHERE user_id = :uid
+                  AND id IN :item_ids
+            """),
+            {
+                "coupon_id": coupon_id,
+                "uid": user_id,
+                "item_ids": tuple(cart_item_ids),
+                "updated_at": datetime.now(),
+            },
+        )
+    else:
+        result = db.execute(
+            text("""
+                UPDATE cart_items
+                SET coupon_id = :coupon_id, updated_at = :updated_at
+                WHERE user_id = :uid
+            """),
+            {
+                "coupon_id": coupon_id,
+                "uid": user_id,
+                "updated_at": datetime.now(),
+            },
+        )
+    db.commit()
+    return {
+        "updated_count": result.rowcount,
+        "coupon_id": coupon_id,
+    }
+
+
+def remove_coupon(
+    db: Session,
+    user_id: int,
+    cart_item_ids: list[int] | None = None,
+) -> dict:
+    if cart_item_ids:
+        result = db.execute(
+            text("""
+                UPDATE cart_items
+                SET coupon_id = NULL, updated_at = :updated_at
+                WHERE user_id = :uid
+                  AND coupon_id IS NOT NULL
+                  AND id IN :item_ids
+            """),
+            {
+                "uid": user_id,
+                "item_ids": tuple(cart_item_ids),
+                "updated_at": datetime.now(),
+            },
+        )
+    else:
+        result = db.execute(
+            text("""
+                UPDATE cart_items
+                SET coupon_id = NULL, updated_at = :updated_at
+                WHERE user_id = :uid
+                  AND coupon_id IS NOT NULL
+            """),
+            {
+                "uid": user_id,
+                "updated_at": datetime.now(),
+            },
+        )
+    db.commit()
+    return {
+        "removed_count": result.rowcount,
+    }
 
 
 def remove_from_cart(db: Session, user_id: int, cart_item_id: int) -> bool:

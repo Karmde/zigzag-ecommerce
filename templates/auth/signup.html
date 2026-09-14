@@ -109,8 +109,9 @@
 
                     <!-- Phone Number -->
                     <div class="relative">
-                        <input type="tel" id="phone" name="phone" maxlength="15" placeholder=" " autocomplete="tel"
-                            class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 focus:outline-none focus:border-black">
+                        <input type="tel" id="phone" name="phone" maxlength="10" placeholder=" " autocomplete="tel"
+                            class="peer w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 focus:outline-none focus:border-black"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         <label for="phone" class="absolute left-4 bg-white px-1 text-gray-500 transition-all duration-200
                             peer-placeholder-shown:top-4
                             peer-placeholder-shown:text-base
@@ -337,8 +338,7 @@
 
         const MIN_PASSWORD_LENGTH = 8;
         const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        // Allows digits, spaces, +, -, () — 7 to 15 digits total
-        const PHONE_REGEX = /^[0-9+\-\s()]{7,15}$/;
+        const PHONE_REGEX = /^[0-9]{10}$/;
 
         const simpleInputs = [firstname, lastname, email, phone];
         const passwordInputs = [password, confirmPassword];

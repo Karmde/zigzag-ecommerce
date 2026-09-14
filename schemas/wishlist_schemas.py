@@ -18,6 +18,8 @@ class WishlistItemResponse(BaseModel):
     id: int
     user_id: int
     product_variant_id: int
+    product_id: int
+    color_id: Optional[int] = None
     sku: str
     product_name: str
     product_slug: str

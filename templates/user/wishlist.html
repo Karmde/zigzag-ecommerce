@@ -30,7 +30,11 @@
             <div class="wishlist-card" data-wishlist-id="{{ item.id }}">
 
                 <!-- Product -->
-                <a href="/product?id={{ item.product_variant_id }}" class="block">
+                {% set product_url = '/product?id=' + item.product_id | string %}
+                {% if item.color_id %}
+                    {% set product_url = product_url + '&color_id=' + item.color_id | string %}
+                {% endif %}
+                <a href="{{ product_url }}" class="block">
 
                     <!-- Image -->
                     <div class="relative bg-surface rounded-lg overflow-hidden aspect-square shadow-black/15">

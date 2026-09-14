@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ==========================================================
@@ -21,8 +21,15 @@ class SignupRequest(BaseModel):
     firstname: str
     lastname: str
     email: EmailStr
-    phone: str
+    phone: str = Field(..., min_length=10, max_length=10)
     password: str = Field(..., min_length=8, max_length=72)
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, value: str) -> str:
+        if not value.isdigit():
+            raise ValueError("Phone number must contain only digits.")
+        return value
 
 
 class SignupResponse(BaseModel):

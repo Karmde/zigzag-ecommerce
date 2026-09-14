@@ -180,44 +180,80 @@ def set_coupon_categories(db: Session, coupon_id: int, category_ids: list[int]) 
     db.commit()
 
 
-def verify_coupon(db: Session, code: str, user_id: int, cart_total: float) -> dict:
+def verify_coupon(
+    db: Session,
+    code: str,
+    user_id: int,
+    cart_total: float,
+    cart_items: list[dict] | None = None,
+) -> dict:
     coupon = get_coupon_by_code(db, code)
     if not coupon:
-        return {"valid": False, "message": "Invalid coupon code."}
+        return {"valid": False, "message": "Invalid coupon code.", "eligible_item_ids": []}
 
     if not coupon["is_active"]:
-        return {"valid": False, "message": "This coupon is no longer active."}
+        return {"valid": False, "message": "This coupon is no longer active.", "eligible_item_ids": []}
 
     now = _now()
     if coupon["start_date"] and coupon["start_date"] > now:
-        return {"valid": False, "message": "This coupon is not yet valid."}
+        return {"valid": False, "message": "This coupon is not yet valid.", "eligible_item_ids": []}
 
     if coupon["end_date"] and coupon["end_date"] < now:
-        return {"valid": False, "message": "This coupon has expired."}
+        return {"valid": False, "message": "This coupon has expired.", "eligible_item_ids": []}
 
     if coupon["usage_limit"] is not None and coupon["used_count"] >= coupon["usage_limit"]:
-        return {"valid": False, "message": "This coupon has reached its usage limit."}
+        return {"valid": False, "message": "This coupon has reached its usage limit.", "eligible_item_ids": []}
 
     user_usage = db.execute(text("""
         SELECT COUNT(*) AS cnt FROM coupon_users
         WHERE coupon_id = :coupon_id AND user_id = :user_id
     """), {"coupon_id": coupon["id"], "user_id": user_id}).scalar()
     if user_usage >= coupon["usage_per_user"]:
-        return {"valid": False, "message": "You have already used this coupon the maximum number of times."}
+        return {"valid": False, "message": "You have already used this coupon the maximum number of times.", "eligible_item_ids": []}
 
     if cart_total < coupon["minimum_cart_amount"]:
         return {
             "valid": False,
             "message": f"Minimum cart amount is ₹{coupon['minimum_cart_amount']:.2f} to apply this coupon.",
+            "eligible_item_ids": [],
         }
 
+    eligible_item_ids: list[int] = []
+    if cart_items:
+        product_ids = coupon.get("product_ids") or []
+        category_ids = coupon.get("category_ids") or []
+        for item in cart_items:
+            item_product_id = item.get("product_id")
+            item_category_ids = item.get("category_ids") or []
+            is_eligible = False
+            if not product_ids and not category_ids:
+                is_eligible = True
+            else:
+                if product_ids and item_product_id in product_ids:
+                    is_eligible = True
+                if category_ids and set(item_category_ids).intersection(category_ids):
+                    is_eligible = True
+            if is_eligible:
+                eligible_item_ids.append(item["id"])
+
     discount_amount = 0.0
+    eligible_total = cart_total
+    if eligible_item_ids and cart_items:
+        eligible_total = 0.0
+        for item in cart_items:
+            if item["id"] in eligible_item_ids:
+                unit_price = item.get("unit_price") or 0
+                quantity = item.get("quantity") or 1
+                eligible_total += unit_price * quantity
+    elif eligible_item_ids and not cart_items:
+        eligible_total = cart_total
+
     if coupon["discount_type"] == "percentage":
-        discount_amount = cart_total * (coupon["discount_value"] / 100)
+        discount_amount = eligible_total * (coupon["discount_value"] / 100)
         if coupon["maximum_discount"] is not None and discount_amount > coupon["maximum_discount"]:
             discount_amount = float(coupon["maximum_discount"])
     elif coupon["discount_type"] == "fixed":
-        discount_amount = min(cart_total, float(coupon["discount_value"]))
+        discount_amount = min(eligible_total, float(coupon["discount_value"]))
     elif coupon["discount_type"] == "free_shipping":
         discount_amount = 0.0
 
@@ -229,6 +265,7 @@ def verify_coupon(db: Session, code: str, user_id: int, cart_total: float) -> di
         "coupon": coupon,
         "discount_amount": round(discount_amount, 2),
         "final_amount": round(final_amount, 2),
+        "eligible_item_ids": eligible_item_ids,
     }
 
 

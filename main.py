@@ -6,6 +6,7 @@ load_dotenv()
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from api.auth_api import router as auth_router
 from api.product_api import router as product_router
@@ -15,6 +16,8 @@ from api.cart_api import router as cart_router
 from api.wishlist_api import router as wishlist_router
 from api.coupon_api import router as coupon_router
 from api.address_api import router as address_router
+from api.checkout_api import router as checkout_router
+from api.order_api import router as order_router
 
 from pages.auth import router as auth_pages_router
 from pages.home import router as home_pages_router
@@ -27,6 +30,11 @@ app = FastAPI()
 # Static files
 app.mount("/images", StaticFiles(directory="images"), name="images")
 app.mount("/js", StaticFiles(directory="js"), name="js")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse("images/zig_zag_logo.png")
 
 # CORS
 app.add_middleware(
@@ -48,13 +56,6 @@ app.include_router(admin_pages_router)
 app.include_router(product_pages_router)
 app.include_router(user_pages_router)
 
-@app.get("/task")
-async def verify_email(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="task/task.html"
-    )
-
 # Api router
 app.include_router(auth_router)
 app.include_router(product_router)
@@ -64,3 +65,5 @@ app.include_router(cart_router)
 app.include_router(wishlist_router)
 app.include_router(coupon_router)
 app.include_router(address_router)
+app.include_router(checkout_router)
+app.include_router(order_router)

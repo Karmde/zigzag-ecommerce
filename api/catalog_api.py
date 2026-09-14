@@ -29,18 +29,21 @@ def get_filters(
     max_price: Optional[float] = None,
     category_name: Optional[str] = None,
     brand_name: Optional[str] = None,
+    sales: Optional[bool] = Query(False),
 ):
     return product_services.get_catalog_filters(
         db, query=q, category_ids=category, brand_ids=brand, gender_ids=gender,
         color_ids=color, size_ids=size, min_price=min_price, max_price=max_price,
         category_name=category_name, brand_name=brand_name,
         is_admin=(current_user["role"] == "admin" if current_user else False),
+        sales=sales,
     )
 
 @router.get("/products", response_model=CatalogProductsResponse)
 def get_products(
     current_user: dict | None = Depends(get_optional_current_user),
     db: Session = Depends(get_db),
+    page: Optional[int] = Query(None, ge=1),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     q: Optional[str] = None,
@@ -51,15 +54,20 @@ def get_products(
     size: Optional[List[int]] = Query(None),
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
-    sort: str = Query("featured"),
+    sort: str = Query("newest"),
     category_name: Optional[str] = None,
     brand_name: Optional[str] = None,
+    sales: Optional[bool] = Query(False),
 ):
+    if page is not None:
+        offset = (page - 1) * limit
     result = product_services.get_catalog_products_filtered(
         db, limit=limit, offset=offset, query=q,
         category_ids=category, brand_ids=brand, gender_ids=gender,
         color_ids=color, size_ids=size, min_price=min_price, max_price=max_price,
         sort_by=sort, category_name=category_name, brand_name=brand_name,
         is_admin=(current_user["role"] == "admin" if current_user else False),
+        sales=sales,
     )
-    return CatalogProductsResponse(total=result["total"], products=result["products"])
+    has_next = (offset + limit) < result["total"]
+    return CatalogProductsResponse(total=result["total"], products=result["products"], has_next=has_next)
