@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body>
+
+    <section class="min-h-screen bg-white flex justify-center pt-20 pb-16 px-6">
+
+        <div class="w-full max-w-3xl text-center">
+
+            <!-- Success Icon -->
+            <div class="relative mx-auto flex h-24 w-24 items-center justify-center">
+
+                <!-- Ripple -->
+                <span class="absolute h-full w-full rounded-full bg-green-500/15 animate-ping"></span>
+
+                <!-- Circle -->
+                <div id="success-circle"
+                    class="relative flex h-24 w-24 scale-0 items-center justify-center rounded-full bg-green-500 transition duration-500">
+
+                    <svg id="success-check" class="h-11 w-11 scale-0 text-white transition duration-300" fill="none"
+                        stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+
+                </div>
+
+            </div>
+
+            <!-- Heading -->
+
+            <h1 class="mt-10 text-4xl font-bold tracking-tight text-gray-900">
+                Order Confirmed
+            </h1>
+
+            <p class="mx-auto mt-5 max-w-xl text-lg leading-8 text-gray-500">
+                Thanks for your purchase.
+                We'll send you an email when your order ships.
+            </p>
+
+            <!-- Order Details -->
+
+            <div class="mx-auto mt-12 max-w-xl border-t border-b border-gray-200">
+
+                <div class="flex items-center justify-between py-5">
+
+                    <span class="text-gray-500">
+                        Order ID
+                    </span>
+
+                    <span id="order-id" class="font-bold text-gray-900">
+                        #{{ order_id }}
+                    </span>
+
+                </div>
+
+                <div class="flex items-center justify-between py-5 border-t border-gray-100">
+
+                    <span class="text-gray-500">
+                        Order Placed
+                    </span>
+
+                    <span id="order-date" class="font-bold text-gray-900">
+                        {{ order_date }}
+                    </span>
+
+                </div>
+
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-14 border-t border-gray-200 pt-8">
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                    <!-- Continue Shopping -->
+                    <a href="/catalog"
+                        class="group flex h-14 items-center justify-center rounded-xl border border-gray-300 bg-white px-6 text-base font-semibold text-gray-900 transition-all duration-200 hover:border-black hover:bg-gray-50">
+
+                        <svg class="mr-2 h-5 w-5 transition-transform duration-200 group-hover:-translate-x-1"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+
+                        Continue Shopping
+                    </a>
+
+                    <!-- View Order -->
+                    <a href="/orders"
+                        class="group flex h-14 items-center justify-center rounded-xl bg-black px-6 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-xl">
+
+                        View Order
+
+                        <svg class="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- Divider -->
+            <div class="mx-auto mt-14 max-w-3xl border-t border-gray-200"></div>
+
+            <!-- Shipping Address -->
+            <div class="mx-auto mt-10 max-w-3xl text-left">
+
+                <div class="flex items-center justify-between">
+
+                    <h2 class="text-2xl font-semibold text-gray-900">
+                        Shipping Address
+                    </h2>
+
+                    <span
+                        class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium uppercase tracking-wide text-gray-600">
+                        {{ address.address_type | default('Home', true) }}
+                    </span>
+
+                </div>
+
+                <div class="mt-6 rounded-2xl border border-gray-200 bg-white p-6">
+
+                    <!-- Recipient -->
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                                Recipient
+                            </p>
+
+                            <h3 class="mt-1 text-lg font-semibold text-gray-900">
+                                {{ address.full_name }}
+                            </h3>
+                        </div>
+
+                        <div class="mt-4 sm:mt-0 sm:text-right">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                                Phone
+                            </p>
+
+                            <p class="mt-1 font-medium text-gray-900">
+                                {{ address.phone_number }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="my-6 border-t border-gray-200"></div>
+
+                    <!-- Address -->
+                    <div>
+
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            Delivery Address
+                        </p>
+
+                        <p class="mt-2 leading-7 text-gray-700">
+                            {{ address.address }}{% if address.landmark %},<br>{{ address.landmark }},{% endif %}<br>
+                            {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+                            {{ address.country }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+            <!-- Ordered Items -->
+            <section class="mt-12 text-left">
+
+                <div class="mb-6 flex items-center justify-between">
+
+                    <h2 class="text-2xl font-semibold tracking-tight text-gray-900">
+                        Ordered Items
+                    </h2>
+
+                    <span
+                        class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-medium text-gray-600">
+                        {{ items_count }} Items
+                    </span>
+
+                </div>
+
+                {% for item in items %}
+                <div class="flex items-start gap-5 p-4">
+
+                    <!-- Image -->
+                    <div class="w-44 shrink-0">
+                        {% if item.product_image %}
+                        <img src="{{ item.product_image }}" class="block h-48 w-full object-contain">
+                        {% else %}
+                        <div class="flex h-48 w-full items-center justify-center bg-gray-100 text-xs text-gray-400">No image</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Details -->
+                    <div class="flex-1 relative">
+
+                        <!-- Price -->
+                        <div class="absolute right-0 top-0 flex items-center gap-2 pt-4">
+                            {% set coupon_discount = item.coupon_discount if item.coupon_discount is not none else 0 %}
+                            {% set discounted_total = item.line_total - coupon_discount %}
+                            <p class="text-xl font-semibold text-black">
+                                ₹{{ discounted_total|inr }}
+                            </p>
+                        </div>
+
+                        <!-- Product Name -->
+                        <p class="text-xl font-semibold pr-28 pt-4">
+                            {{ item.product_name }}
+                        </p>
+
+                        <!-- Category -->
+                        <p class="text-gray-500 font-medium mt-1">
+                            {{ item.sku }}
+                        </p>
+
+                        <!-- Color -->
+                        {% if item.color_name %}
+                        <p class="mt-1 text-gray-600">
+                            <span class="font-semibold text-gray-900">Colour:</span> {{ item.color_name }}
+                        </p>
+                        {% endif %}
+
+                        <!-- Size -->
+                        {% if item.size_name %}
+                        <p class="mt-1 text-gray-600">
+                            <span class="font-semibold text-gray-900">Size:</span> {{ item.size_name }}
+                        </p>
+                        {% endif %}
+
+                        <!-- Quantity -->
+                        <p class="mt-1 text-gray-600">
+                            <span class="font-semibold text-gray-900">Qty:</span> {{ item.quantity }}
+                        </p>
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            </section>
+        </div>
+
+
+    </section>
+
+    <script>
+        window.addEventListener("load", () => {
+
+            const circle = document.getElementById("success-circle");
+            const check = document.getElementById("success-check");
+
+            setTimeout(() => {
+                circle.classList.remove("scale-0");
+                circle.classList.add("scale-100");
+            }, 100);
+
+            setTimeout(() => {
+                check.classList.remove("scale-0");
+                check.classList.add("scale-100");
+            }, 550);
+
+            const orderIdEl = document.getElementById("order-id");
+            if (orderIdEl) {
+                orderIdEl.textContent = "#" + "{{ order_id }}";
+            }
+
+            const orderDateEl = document.getElementById("order-date");
+            if (orderDateEl) {
+                orderDateEl.textContent = "{{ order_date }}";
+            }
+
+        });
+
+    </script>
+</body>
+
+</html>

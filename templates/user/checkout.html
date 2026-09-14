@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - ZigZag</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 9999px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        .checkout-address-list {
+            max-height: 520px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="bg-white min-h-screen flex flex-col">
+    <header id="main-header" class="bg-white border-b border-gray-400">
+        <div class="relative max-w-screen-2xl mx-auto px-6 lg:px-8 py-8 flex items-center">
+
+            <!-- Logo -->
+            <a href="/" id="desktop-logo" class="flex items-center ml-4 z-10">
+                <img src="/images/zig_zag_logo.png" alt="ZigZag Logo" class="h-10 w-auto">
+            </a>
+
+            <!-- Progress Indicator -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-6">
+                <div class="flex items-center justify-between">
+                    <!-- Step 1 -->
+                    <div id="header-step-1" class="step flex items-center">
+                        <div
+                            class="circle w-10 h-10 rounded-full border-2 border-gray-200 bg-black text-white flex items-center justify-center font-semibold">
+                            1
+                        </div>
+                        <span class="label ml-3 text-gray-500">Address</span>
+                    </div>
+
+                    <div id="line-1" class="flex-1 h-[2px] bg-gray-300 mx-4"></div>
+
+                    <!-- Step 2 -->
+                    <div id="header-step-1" class="step flex items-center">
+                        <div
+                            class="circle w-10 h-10 rounded-full border-2 border-gray-200 bg-white text-black flex items-center justify-center font-semibold">
+                            2
+                        </div>
+                        <span class="label ml-3 text-gray-500">Payment</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 px-8">
+        {% if not checkout_items %}
+        <div class="max-w-[1800px] mx-auto flex min-h-screen items-center justify-center">
+            <div class="text-center">
+                <p class="text-lg font-medium text-black/60">Your cart is empty</p>
+                <a href="/" class="mt-4 inline-block bg-black px-6 py-3 text-sm font-semibold text-white">Continue Shopping</a>
+            </div>
+        </div>
+        {% else %}
+        <div id="cartContent" class="max-w-[1800px] mx-auto flex min-h-screen">
+            <div class="w-2/3">
+                <section id="checkout-address-section" class="mx-auto max-w-7xl pt-6 py-14 lg:px-8">
+
+                    <!-- Address Header -->
+                    <div
+                        class="flex flex-col justify-between gap-6 border-b border-black/10 pb-8 sm:flex-row sm:items-end">
+
+                        <div>
+                            <p class="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-black/50">
+                                Checkout
+                            </p>
+
+                            <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
+                                Address
+                            </h1>
+
+                            <p class="mt-3 max-w-xl text-sm leading-6 text-black/55">
+                                Select a delivery address for your order.
+                            </p>
+                        </div>
+
+                        <button type="button" onclick="addressesJS.openAddressModal()"
+                            class="group inline-flex h-12 items-center justify-center gap-3 bg-black px-6 text-sm font-medium text-white transition hover:bg-black/85">
+                            <svg class="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14" />
+                            </svg>
+
+                            Add New Address
+                        </button>
+
+                    </div>
+
+                    <!-- Address List for Checkout -->
+                    <div id="checkout-address-list"
+                        class="checkout-address-list mt-8 grid max-h-[400px] grid-cols-1 gap-5 overflow-y-auto pr-3 custom-scrollbar lg:grid-cols-2">
+                        {% if checkout_addresses %}
+                            {% for addr in checkout_addresses %}
+                            <article class="checkout-address-card group relative border border-black/10 bg-white p-6 transition duration-300 hover:border-black/25" data-address-id="{{ addr.id }}">
+                                <div class="flex items-start justify-between gap-5">
+                                    <div class="flex items-center gap-4">
+                                        <div class="checkout-avatar flex h-11 w-11 shrink-0 items-center justify-center rounded-full {% if addr.is_default %}bg-black text-sm font-medium text-white{% else %}border border-black/10 text-sm font-medium{% endif %}">
+                                            {{ addr.full_name[:2]|upper }}
+                                        </div>
+                                        <div>
+                                            <h2 class="text-base font-semibold tracking-tight">{{ addr.full_name }}</h2>
+                                            <p class="mt-1 text-sm text-black/50">{{ addr.phone_number }}</p>
+                                        </div>
+                                    </div>
+                                    <span class="checkout-selected-badge"></span>
+                                </div>
+
+                                <div class="mt-7 border-t border-black/10 pt-6">
+                                    <div class="flex gap-4">
+                                        <div class="mt-0.5 shrink-0">
+                                            <svg class="h-5 w-5 text-black/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z" />
+                                                <circle cx="12" cy="10" r="2.2" />
+                                            </svg>
+                                        </div>
+                                        <div class="text-sm leading-6 text-black/70">
+                                            <p>{{ addr.address }}{% if addr.landmark %}, {{ addr.landmark }}{% endif %}</p>
+                                            <p>{{ addr.city }}, {{ addr.state }} — {{ addr.postal_code }}</p>
+                                            <p>{{ addr.country }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <span class="inline-flex items-center border border-black/10 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-black/55">
+                                        {{ addr.address_type|capitalize }}
+                                    </span>
+                                </div>
+
+                                <div class="mt-7 flex items-center justify-between border-t border-black/10 pt-5">
+                                    {% if not addr.is_default %}
+                                    <button type="button" class="select-checkout-address-btn inline-flex items-center justify-center bg-black px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-gray-800" data-address-id="{{ addr.id }}">
+                                        Deliver here
+                                    </button>
+                                    {% else %}
+                                    <span class="text-xs font-medium text-black/40">This address will be used for delivery</span>
+                                    {% endif %}
+                                </div>
+                            </article>
+                            {% endfor %}
+                        {% else %}
+                        <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                            <svg class="h-12 w-12 text-black/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11z" />
+                                <circle cx="12" cy="10" r="2.2" />
+                            </svg>
+                            <p class="text-sm text-black/50">No addresses saved yet.</p>
+                            <p class="text-xs text-black/35 mt-1">Click "Add New Address" to get started.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button type="button" onclick="showPaymentSection()"
+                            class="inline-flex items-center justify-center bg-black px-7 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-gray-800">
+
+                            Continue to Payment
+
+                            <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+                <section id="checkout-payment-section" class="mx-auto max-w-7xl pt-6 py-14 lg:px-8 hidden">
+
+                    <!-- Payment Header -->
+                    <div
+                        class="flex flex-col justify-between gap-6 border-b border-black/10 pb-8 sm:flex-row sm:items-end">
+
+                        <div>
+                            <p class="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-black/50">
+                                Checkout
+                            </p>
+
+                            <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
+                                Payment
+                            </h1>
+
+                            <p class="mt-3 max-w-xl text-sm leading-6 text-black/55">
+                                Choose your preferred payment method to securely complete your order.
+                            </p>
+                        </div>
+
+                        <button type="button" onclick="showAddressSection()"
+                            class="group inline-flex h-12 items-center justify-center gap-3 border border-black/15 bg-white px-6 text-sm font-medium text-black transition hover:border-black hover:bg-black/5">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7-7 7 7 7" />
+
+                            </svg>
+
+                            Go to Address
+                        </button>
+
+                    </div>
+
+                        <div class="flex">
+                        <!-- Payment Methods -->
+                        <div class="w-1/3 mt-8 max-w-2xl space-y-4">
+
+                            <!-- UPI -->
+                            <label id="payment-tab-upi-label"
+                                class="flex cursor-pointer items-center justify-between border border-black bg-black/[0.02] p-5 transition-colors">
+
+                                <div class="flex items-center gap-4">
+
+                                    <input type="radio" name="payment_method" value="upi" checked
+                                        class="h-4 w-4 accent-black" onchange="showPaymentTab('upi')">
+
+                                    <div>
+                                        <p class="text-sm font-semibold text-black">
+                                            UPI
+                                        </p>
+
+                                        <p class="mt-1 text-xs text-black/50">
+                                            Pay using any UPI app
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                                <span class="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/40">
+                                    Recommended
+                                </span>
+
+                            </label>
+
+                            <!-- COD -->
+                            <label id="payment-tab-cod-label"
+                                class="flex cursor-pointer items-center justify-between border border-black/10 bg-white p-5 transition-colors">
+
+                                <div class="flex items-center gap-4">
+
+                                    <input type="radio" name="payment_method" value="cod" class="h-4 w-4 accent-black" onchange="showPaymentTab('cod')">
+
+                                    <div>
+                                        <p class="text-sm font-semibold text-black">
+                                            Cash on Delivery
+                                        </p>
+
+                                        <p class="mt-1 text-xs text-black/50">
+                                            Pay when your order arrives
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                            </label>
+
+                        </div>
+                        <div class="w-2/3 pt-6 pl-8">
+
+                            <!-- UPI Payment Details -->
+                            <div id="payment-tab-upi">
+
+                                <!-- Header -->
+                                <div>
+                                    <p class="text-xs font-medium uppercase tracking-[0.2em] text-black/45">
+                                        UPI Payment
+                                    </p>
+
+                                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-black">
+                                        Pay securely with UPI
+                                    </h2>
+
+                                    <p class="mt-2 text-sm leading-6 text-black/55">
+                                        Enter your UPI ID to complete your payment securely.
+                                    </p>
+                                </div>
+
+
+                                <!-- UPI Input -->
+                                <div class="mt-8 max-w-xl">
+
+                                    <label for="upi_id" class="mb-2 block text-sm font-medium text-black">
+                                        UPI ID
+                                    </label>
+
+                                    <div class="flex items-center border border-black/15 bg-white">
+
+                                        <input type="text" id="upi_id" name="upi_id" placeholder="example@upi"
+                                            autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="upi-id-error"
+                                            class="w-full border-0 bg-transparent px-4 py-3.5 text-sm text-black outline-none placeholder:text-black/30 focus:ring-0">
+
+                                    </div>
+
+                                    <p id="upi-id-error" class="mt-2 hidden text-xs text-red-600" role="alert"></p>
+
+                                    <p class="mt-2 text-xs text-black/40">
+                                        Example: yourname@okaxis
+                                    </p>
+
+                                </div>
+
+
+                                <!-- Payment Amount -->
+                                <div class="mt-8 max-w-xl border border-black/10 bg-black/[0.02] p-5">
+
+                                    <div class="flex items-center justify-between">
+
+                                        <span class="text-sm font-medium text-black/55">
+                                            Amount to Pay
+                                        </span>
+
+                                        <span class="text-lg font-bold text-black">
+                                            ₹{{ checkout_grand_total|inr }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Security Info -->
+                                <div class="mt-6 flex max-w-xl items-start gap-3">
+
+                                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-black/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z" />
+
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" />
+
+                                    </svg>
+
+                                    <p class="text-xs leading-5 text-black/45">
+                                        Your payment information is securely processed. Do not share your UPI PIN with
+                                        anyone.
+                                    </p>
+
+                                </div>
+
+
+                                <!-- Pay Button -->
+                                <div class="mt-8 max-w-xl flex justify-end">
+
+                                    <button id="upi-place-order-button" type="button" onclick="placeOrder()"
+                                        data-default-label="Pay ₹{{ checkout_grand_total|inr }}"
+                                        class="inline-flex items-center justify-center bg-black px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-gray-800">
+
+                                        <span data-button-label>Pay ₹{{ checkout_grand_total|inr }}</span>
+
+                                        <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="1.8">
+
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
+
+                                        </svg>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <!-- COD Payment Details -->
+                            <div id="payment-tab-cod" class="hidden">
+
+                                <!-- Header -->
+                                <div>
+                                    <p class="text-xs font-medium uppercase tracking-[0.2em] text-black/45">
+                                        Cash on Delivery
+                                    </p>
+
+                                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-black">
+                                        Pay when your order arrives
+                                    </h2>
+
+                                    <p class="mt-2 text-sm leading-6 text-black/55">
+                                        Your order will be delivered to your selected address. You can pay
+                                        when the order arrives at your doorstep.
+                                    </p>
+                                </div>
+
+
+                                <!-- COD Information -->
+                                <div class="mt-8 max-w-xl border border-black/10 bg-black/[0.02] p-5">
+
+                                    <div class="flex items-start gap-4">
+
+                                        <!-- Icon -->
+                                        <div
+                                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white">
+
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                stroke-width="1.7">
+
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5A2.5 2.5 0 015.5 5h13A2.5 2.5 0 0121 7.5v9a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 16.5v-9z" />
+
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9h18M7 14h3" />
+
+                                            </svg>
+
+                                        </div>
+
+
+                                        <!-- Information -->
+                                        <div>
+
+                                            <p class="text-sm font-semibold text-black">
+                                                Cash on Delivery
+                                            </p>
+
+                                            <p class="mt-1 text-xs leading-5 text-black/50">
+                                                Keep the exact amount ready when your order is delivered.
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Payment Amount -->
+                                <div class="mt-5 max-w-xl border border-black/10 bg-white p-5">
+
+                                    <div class="flex items-center justify-between">
+
+                                        <span class="text-sm font-medium text-black/55">
+                                            Amount to Pay
+                                        </span>
+
+                                        <span class="text-lg font-bold text-black">
+                                            ₹{{ checkout_grand_total|inr }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Delivery Notice -->
+                                <div class="mt-6 flex max-w-xl items-start gap-3">
+                                
+                                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-black/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="1.7">
+                                
+                                        <circle cx="12" cy="12" r="9" />
+                                
+                                        <path stroke-linecap="round" d="M12 10v6" />
+                                
+                                        <path stroke-linecap="round" d="M12 7.5h.01" />
+                                
+                                    </svg>
+                                
+                                    <p class="text-xs leading-5 text-black/45">
+                                        Please make sure someone is available at the delivery address
+                                        to receive and pay for the order.
+                                    </p>
+                                
+                                </div>
+
+
+                                <!-- Place Order Button -->
+                                <div class="mt-8 max-w-xl flex justify-end">
+
+                                    <button id="cod-place-order-button" type="button" onclick="placeOrder()"
+                                        data-default-label="Place Order"
+                                        class="inline-flex items-center justify-center bg-black px-7 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-gray-800">
+
+                                        <span data-button-label>Place Order</span>
+
+                                        <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            stroke-width="1.8">
+
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
+
+                                        </svg>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </section>
+            </div>
+            <div class="sticky top-6 w-1/3 self-start p-2">
+
+                <!-- Summary -->
+                <div class="p-4">
+
+                    <!-- Heading -->
+                    <h2 class="mb-7 text-2xl font-bold tracking-tight text-black">
+                        Summary
+                    </h2>
+
+                    <!-- Price Details -->
+                    <div class="space-y-5">
+
+                        <!-- Cart Total -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">
+                                Cart Total
+                            </span>
+
+                            <span class="text-sm font-semibold text-black">
+                                ₹{{ checkout_subtotal|inr }}
+                            </span>
+                        </div>
+
+                        <!-- Product Discount -->
+                        <div id="savingsRow" class="flex items-center justify-between {% if checkout_product_discount <= 0 %}hidden{% endif %}">
+                            <span class="text-sm font-medium text-gray-600">
+                                Discount
+                            </span>
+
+                            <span class="text-sm font-semibold text-red-600">
+                                -₹{{ checkout_product_discount|inr }}
+                            </span>
+                        </div>
+
+                        <!-- Coupon Discount -->
+                        {% if checkout_coupon_discount > 0 %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">
+                                Coupon Discount
+                            </span>
+
+                            <span class="text-sm font-semibold text-red-600">
+                                -₹{{ checkout_coupon_discount|inr }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Shipping -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">
+                                Shipping Charge
+                            </span>
+
+                            <span class="text-sm font-semibold text-green-600">
+                                Free
+                            </span>
+                        </div>
+
+                        {% if checkout_product_discount > 0 or checkout_coupon_discount > 0 %}
+                        <div class="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
+                        
+                            ✓ You saved ₹{{ (checkout_product_discount + checkout_coupon_discount) | inr }} on this order
+                        
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="my-6 border-t border-gray-200"></div>
+                    
+                    <!-- Total -->
+                    <div class="flex items-center justify-between">
+
+                        <span class="text-lg font-bold text-black">
+                            Total
+                        </span>
+
+                        <span class="cart-total-value text-xl font-bold tracking-tight text-black">
+                            ₹{{ checkout_grand_total|inr }}
+                        </span>
+
+                    </div>
+
+                    <!-- Your Items -->
+                    <div class="mt-9 border-t border-gray-200 pt-6">
+
+                        <!-- Dropdown Header -->
+                        <button type="button" onclick="toggleItemsDropdown()"
+                            class="flex w-full items-center justify-between text-left">
+
+                            <div class="flex items-center gap-3">
+
+                                <h3 class="text-lg font-bold tracking-tight text-black">
+                                    Your Items
+                                </h3>
+
+                                <span class="text-xs font-medium text-black/45">
+                                    {{ checkout_items|length }} Items
+                                </span>
+
+                            </div>
+
+                            <!-- Arrow -->
+                            <svg id="itemsDropdownIcon" class="h-5 w-5 text-black/60 transition-transform duration-300"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+
+                            </svg>
+
+                        </button>
+
+
+                        <!-- Product List -->
+                        <div id="itemsDropdown"
+                            class="hidden mt-6 max-h-[280px] space-y-5 overflow-y-auto pr-2 custom-scrollbar">
+
+                            {% for item in checkout_items %}
+
+                            <!-- Product -->
+                            <div class="flex min-h-[128px] items-start gap-5">
+
+                                <!-- Product Image -->
+                                <div class="h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-white">
+
+                                    {% if item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="h-full w-full object-contain">
+                                    {% else %}
+                                    <div class="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400">No image</div>
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- Product Information -->
+                                <div class="min-w-0 flex-1 pt-1">
+
+                                    <!-- Product Name -->
+                                    <p class="truncate text-base font-semibold text-black">
+                                        {{ item.product_name }}
+                                    </p>
+
+                                    <!-- Category -->
+                                    <p class="mt-2 text-sm font-medium text-gray-500">
+                                        {{ item.sku }}
+                                    </p>
+
+                                    <!-- Product Details -->
+                                    <div class="mt-4 flex items-center gap-3 text-sm">
+
+                                        <span class="text-black">
+                                            {{ item.size_name }}
+                                        </span>
+
+                                        <span class="text-gray-300">/</span>
+
+                                        <span class="text-black">
+                                            {{ item.color_name }}
+                                        </span>
+
+                                        <span class="text-gray-300">/</span>
+
+                                        <span class="text-black">
+                                            Qty {{ item.quantity }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Price -->
+                                <div class="shrink-0 pt-1 text-right">
+
+                                    {% if item.product_discount and item.product_discount > 0 %}
+                                    <!-- Original Price -->
+                                    <p class="text-xs text-gray-400 line-through">
+                                        ₹{{ item.original_line_total|inr }}
+                                    </p>
+                                    {% endif %}
+
+                                    <!-- Final Price -->
+                                    <p class="mt-1 text-base font-semibold text-black">
+                                        ₹{{ item.line_total|inr }}
+                                    </p>
+
+                                    {% if item.product_discount and item.product_discount > 0 %}
+                                    <p class="mt-0.5 text-xs font-medium text-red-600">
+                                        Save ₹{{ item.product_discount|inr }}
+                                    </p>
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- This modal intentionally has no close control. -->
+        <div id="payment-modal"
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" aria-describedby="payment-modal-message">
+            <div id="payment-card" tabindex="-1"
+                class="w-full max-w-md scale-90 rounded-3xl bg-white p-8 opacity-0 shadow-2xl transition-all duration-300">
+                <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+                    <div id="check-circle"
+                        class="flex h-14 w-14 scale-0 items-center justify-center rounded-full bg-green-500 transition duration-300">
+                        <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                </div>
+
+                <h2 id="payment-modal-title" class="mt-6 text-center text-3xl font-bold text-gray-900">Payment Successful</h2>
+                <p id="payment-modal-message" class="mt-2 text-center text-gray-500">Your payment has been completed successfully.</p>
+
+                <div class="mt-8 rounded-2xl bg-gray-50 p-5">
+                    <div class="flex justify-between py-2"><span class="text-gray-500">Amount Paid</span><span class="text-xl font-semibold text-green-600">₹{{ checkout_grand_total|inr }}</span></div>
+                    <div class="flex justify-between border-t py-2"><span class="text-gray-500">Payment Method</span><span class="font-semibold">UPI</span></div>
+                    <div class="flex justify-between border-t py-2"><span class="text-gray-500">Order ID</span><span id="payment-modal-order-id" class="font-semibold"></span></div>
+                    <div class="flex justify-between border-t py-2"><span class="text-gray-500">Date</span><span id="payment-modal-date" class="font-semibold"></span></div>
+                </div>
+
+                <p class="mt-6 text-center text-sm font-medium text-gray-700">Redirecting to your order confirmation in <span id="payment-redirect-countdown">7</span> seconds…</p>
+                <p class="mt-2 text-center text-xs text-gray-400">Please wait. This window will close automatically.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    </div>
+    {% include 'user/add-address-modal.html' %}
+    {% include 'partials/footer.html' %}
+    <script src="/js/auth.js"></script>
+    <script src="/js/addresses.js"></script>
+    <script>
+        function toggleItemsDropdown() {
+            const itemsDropdown = document.getElementById("itemsDropdown");
+            const itemsDropdownIcon = document.getElementById("itemsDropdownIcon");
+
+            if (!itemsDropdown || !itemsDropdownIcon) return;
+
+            const isHidden = itemsDropdown.classList.contains("hidden");
+
+            if (isHidden) {
+                itemsDropdown.classList.remove("hidden");
+                itemsDropdownIcon.classList.add("rotate-180");
+            } else {
+                itemsDropdown.classList.add("hidden");
+                itemsDropdownIcon.classList.remove("rotate-180");
+            }
+        }
+
+        function showAddressSection() {
+            const addressSection = document.getElementById("checkout-address-section");
+            const paymentSection = document.getElementById("checkout-payment-section");
+
+            if (addressSection) addressSection.classList.remove("hidden");
+            if (paymentSection) paymentSection.classList.add("hidden");
+
+            updateProgressIndicator(1);
+        }
+
+        function showPaymentSection() {
+            const addressSection = document.getElementById("checkout-address-section");
+            const paymentSection = document.getElementById("checkout-payment-section");
+
+            if (!selectedCheckoutAddressId) {
+                showToast("Validation Error", "Please select a delivery address.", "info");
+                return;
+            }
+
+            if (addressSection) addressSection.classList.add("hidden");
+            if (paymentSection) paymentSection.classList.remove("hidden");
+
+            updateProgressIndicator(2);
+        }
+
+        function showPaymentTab(tab) {
+            const upiLabel = document.getElementById("payment-tab-upi-label");
+            const codLabel = document.getElementById("payment-tab-cod-label");
+            const upiContent = document.getElementById("payment-tab-upi");
+            const codContent = document.getElementById("payment-tab-cod");
+
+            if (tab === "upi") {
+                if (upiLabel) {
+                    upiLabel.classList.remove("border-black/10", "bg-white");
+                    upiLabel.classList.add("border-black", "bg-black/[0.02]");
+                }
+                if (codLabel) {
+                    codLabel.classList.remove("border-black", "bg-black/[0.02]");
+                    codLabel.classList.add("border-black/10", "bg-white");
+                }
+                if (upiContent) upiContent.classList.remove("hidden");
+                if (codContent) codContent.classList.add("hidden");
+            } else if (tab === "cod") {
+                if (codLabel) {
+                    codLabel.classList.remove("border-black/10", "bg-white");
+                    codLabel.classList.add("border-black", "bg-black/[0.02]");
+                }
+                if (upiLabel) {
+                    upiLabel.classList.remove("border-black", "bg-black/[0.02]");
+                    upiLabel.classList.add("border-black/10", "bg-white");
+                }
+                if (codContent) codContent.classList.remove("hidden");
+                if (upiContent) upiContent.classList.add("hidden");
+            }
+        }
+
+        function updateProgressIndicator(step) {
+            const step1Circle = document.querySelector("#header-step-1 .circle");
+            const step2Circle = document.querySelectorAll("#header-step-1 .circle")[1];
+            const step1Label = document.querySelectorAll("#header-step-1 .label")[0];
+            const step2Label = document.querySelectorAll("#header-step-1 .label")[1];
+            const line1 = document.getElementById("line-1");
+
+            if (step === 1) {
+                if (step1Circle) {
+                    step1Circle.classList.remove("bg-white", "text-black", "border-gray-200");
+                    step1Circle.classList.add("bg-black", "text-white", "border-black");
+                }
+                if (step2Circle) {
+                    step2Circle.classList.remove("bg-black", "text-white", "border-black");
+                    step2Circle.classList.add("bg-white", "text-black", "border-gray-200");
+                }
+                if (step1Label) step1Label.classList.remove("text-gray-500");
+                if (step2Label) step2Label.classList.add("text-gray-500");
+                if (line1) line1.classList.add("bg-gray-300");
+                if (line1) line1.classList.remove("bg-black");
+            } else if (step === 2) {
+                if (step1Circle) {
+                    step1Circle.classList.remove("bg-white", "text-black", "border-gray-200");
+                    step1Circle.classList.add("bg-black", "text-white", "border-black");
+                }
+                if (step2Circle) {
+                    step2Circle.classList.remove("bg-white", "text-black", "border-gray-200");
+                    step2Circle.classList.add("bg-black", "text-white", "border-black");
+                }
+                if (step1Label) step1Label.classList.remove("text-gray-500");
+                if (step2Label) step2Label.classList.remove("text-gray-500");
+                if (line1) line1.classList.remove("bg-gray-300");
+                if (line1) line1.classList.add("bg-black");
+            }
+        }
+
+        const UPI_ID_FORMAT = /^[A-Za-z0-9][A-Za-z0-9._-]{1,254}@[A-Za-z0-9][A-Za-z0-9.-]{1,63}$/;
+        let orderSubmissionInProgress = false;
+        let paymentRedirectTimer;
+        let paymentCountdownTimer;
+
+        function showPaymentSuccess(orderId, confirmationToken) {
+            const modal = document.getElementById("payment-modal");
+            const card = document.getElementById("payment-card");
+            const check = document.getElementById("check-circle");
+            const orderIdElement = document.getElementById("payment-modal-order-id");
+            const dateElement = document.getElementById("payment-modal-date");
+            const countdownElement = document.getElementById("payment-redirect-countdown");
+            if (!modal || !card || !check || !orderIdElement || !dateElement || !countdownElement) return;
+
+            window.clearTimeout(paymentRedirectTimer);
+            window.clearInterval(paymentCountdownTimer);
+            orderIdElement.textContent = `#${orderId}`;
+            dateElement.textContent = new Intl.DateTimeFormat("en-IN", {
+                day: "2-digit", month: "short", year: "numeric"
+            }).format(new Date());
+
+            check.classList.remove("scale-100");
+            check.classList.add("scale-0");
+            card.classList.remove("scale-100", "opacity-100");
+            card.classList.add("scale-90", "opacity-0");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+
+            window.setTimeout(() => {
+                card.classList.remove("scale-90", "opacity-0");
+                card.classList.add("scale-100", "opacity-100");
+                card.focus({ preventScroll: true });
+            }, 100);
+            window.setTimeout(() => {
+                check.classList.remove("scale-0");
+                check.classList.add("scale-100");
+            }, 450);
+
+            let secondsRemaining = 7;
+            countdownElement.textContent = secondsRemaining;
+            paymentCountdownTimer = window.setInterval(() => {
+                secondsRemaining -= 1;
+                countdownElement.textContent = secondsRemaining;
+                if (secondsRemaining <= 0) window.clearInterval(paymentCountdownTimer);
+            }, 1000);
+            paymentRedirectTimer = window.setTimeout(() => {
+                window.location.replace(`/order-confirmation?token=${confirmationToken}`);
+            }, 7000);
+        }
+
+        async function placeOrder() {
+            if (!selectedCheckoutAddressId) {
+                showToast("Validation Error", "Please select a delivery address.", "info");
+                showAddressSection();
+                return;
+            }
+
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+            if (!paymentMethod) {
+                showToast("Validation Error", "Please select a payment method.", "info");
+                return;
+            }
+
+            if (paymentMethod === "upi") {
+                const upiInput = document.getElementById("upi_id");
+                const upiError = document.getElementById("upi-id-error");
+                const isValidUpiId = upiInput && UPI_ID_FORMAT.test(upiInput.value.trim());
+                if (!isValidUpiId) {
+                    upiInput?.setAttribute("aria-invalid", "true");
+                    upiInput?.classList.add("text-red-600");
+                    if (upiError) {
+                        upiError.textContent = upiInput?.value.trim()
+                            ? "Enter a valid UPI ID, for example yourname@okaxis."
+                            : "Enter your UPI ID.";
+                        upiError.classList.remove("hidden");
+                    }
+                    return;
+                }
+            }
+
+            if (orderSubmissionInProgress) return;
+            orderSubmissionInProgress = true;
+
+            const submitBtn = document.getElementById(`${paymentMethod}-place-order-button`);
+            const submitLabel = submitBtn?.querySelector("[data-button-label]");
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add("cursor-not-allowed", "opacity-70");
+                if (submitLabel) submitLabel.textContent = "Processing...";
+            }
+
+            try {
+                const response = await window.auth.authFetch("/checkout/orders", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        address_id: selectedCheckoutAddressId,
+                        payment_method: paymentMethod,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.detail || "Failed to place order.");
+                }
+
+                const data = await response.json();
+                if (paymentMethod === "upi") {
+                    showPaymentSuccess(data.order_id, data.confirmation_token);
+                    return;
+                }
+
+                showToast("Success", "Order placed successfully!", "success");
+                window.location.replace(`/order-confirmation?token=${data.confirmation_token}`);
+
+            } catch (error) {
+                console.error("Error placing order:", error);
+                showToast("Error", error.message || "Something went wrong. Please try again.", "info");
+                orderSubmissionInProgress = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove("cursor-not-allowed", "opacity-70");
+                    if (submitLabel) submitLabel.textContent = submitBtn.dataset.defaultLabel;
+                }
+            }
+        }
+
+        if (typeof addressesJS !== "undefined") {
+            const originalSelectCheckoutAddress = addressesJS.selectCheckoutAddress;
+            if (typeof originalSelectCheckoutAddress === "function") {
+                addressesJS.selectCheckoutAddress = function(addressId) {
+                    selectedCheckoutAddressId = addressId;
+                    originalSelectCheckoutAddress(addressId);
+                };
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const upiInput = document.getElementById("upi_id");
+            if (upiInput) {
+                upiInput.addEventListener("input", () => {
+                    upiInput.removeAttribute("aria-invalid");
+                    upiInput.classList.remove("text-red-600");
+                    document.getElementById("upi-id-error")?.classList.add("hidden");
+                });
+            }
+
+            const defaultAddress = document.querySelector(".checkout-address-card[data-address-id]");
+            if (defaultAddress) {
+                const defaultId = parseInt(defaultAddress.getAttribute("data-address-id"), 10);
+                if (defaultId) {
+                    selectedCheckoutAddressId = defaultId;
+                    if (typeof addressesJS !== "undefined" && typeof addressesJS.updateCheckoutSelection === "function") {
+                        addressesJS.updateCheckoutSelection(defaultId);
+                    }
+                }
+            }
+
+            document.querySelectorAll(".select-checkout-address-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const addressId = parseInt(btn.getAttribute("data-address-id"), 10);
+                    if (!addressId) return;
+
+                    selectedCheckoutAddressId = addressId;
+
+                    if (typeof addressesJS !== "undefined" && typeof addressesJS.updateCheckoutSelection === "function") {
+                        addressesJS.updateCheckoutSelection(addressId);
+                    }
+
+                    if (typeof addressesJS !== "undefined" && typeof addressesJS.selectCheckoutAddress === "function") {
+                        addressesJS.selectCheckoutAddress(addressId);
+                    }
+                });
+            });
+        });
+
+        // The success modal stays open until the seven-second redirect completes.
+        document.addEventListener("keydown", (event) => {
+            const modal = document.getElementById("payment-modal");
+            if (event.key === "Escape" && modal && !modal.classList.contains("hidden")) {
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+
+</html>

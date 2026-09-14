@@ -1,0 +1,342 @@
+<div id="address-modal" class="fixed inset-0 z-[100] hidden" aria-hidden="true">
+
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onclick="addressesJS.closeAddressModal()"></div>
+
+    <!-- Modal Wrapper -->
+    <div class="relative flex min-h-full items-center justify-center p-4 sm:p-6">
+
+        <!-- Modal -->
+        <div class="relative w-full max-w-3xl overflow-hidden bg-white shadow-2xl" onclick="event.stopPropagation()">
+
+            <!-- Header -->
+            <div class="flex items-start justify-between border-b border-black/10 px-6 py-6 sm:px-8">
+
+                <div>
+                    <p id="address-modal-label"
+                        class="mb-2 text-[10px] font-medium uppercase tracking-[0.25em] text-black/45">
+                        New Address
+                    </p>
+
+                    <h2 id="address-modal-title" class="text-2xl font-semibold tracking-tight">
+                        Add Delivery Address
+                    </h2>
+
+                    <p id="address-modal-description" class="mt-2 text-sm text-black/50">
+                        Add a new address for your future deliveries.
+                    </p>
+                </div>
+
+                <!-- Close -->
+                <button type="button" onclick="addressesJS.closeAddressModal()"
+                    class="flex h-9 w-9 items-center justify-center text-black/45 transition hover:bg-black/5 hover:text-black"
+                    aria-label="Close">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                </button>
+
+            </div>
+
+
+            <!-- Form -->
+            <form id="address-form">
+                <input type="hidden" id="address_id" name="address_id" value="">
+
+                <div class="max-h-[70vh] overflow-y-auto px-6 py-7 sm:px-8">
+
+                    <!-- Contact Information -->
+                    <div>
+
+                        <div class="mb-5">
+                            <h3 class="text-sm font-semibold">
+                                Contact Information
+                            </h3>
+
+                            <p class="mt-1 text-xs text-black/45">
+                                Information used for delivery contact.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                            <!-- Full Name -->
+                            <div>
+                                <label for="full_name"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    Full Name
+                                </label>
+
+                                <input type="text" id="full_name" name="full_name" placeholder="Enter full name"
+                                    required
+                                    class="h-11 w-full border border-black/15 bg-white px-4 text-sm outline-none transition placeholder:text-black/30 focus:border-black">
+                            </div>
+
+                            <!-- Phone -->
+                            <div>
+                                <label for="phone_number"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    Phone Number
+                                </label>
+
+                                <input type="tel" id="phone_number" name="phone_number" placeholder="Enter phone number"
+                                    required
+                                    class="h-11 w-full border border-black/15 bg-white px-4 text-sm outline-none transition placeholder:text-black/30 focus:border-black">
+                            </div>
+
+                            <!-- Alternate Phone -->
+                            <div class="sm:col-span-2">
+                                <label for="alternate_phone"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    Alternate Phone
+                                    <span class="normal-case tracking-normal text-black/30">
+                                        (Optional)
+                                    </span>
+                                </label>
+
+                                <input type="tel" id="alternate_phone" name="alternate_phone"
+                                    placeholder="Enter alternate phone number"
+                                    class="h-11 w-full border border-black/15 bg-white px-4 text-sm outline-none transition placeholder:text-black/30 focus:border-black">
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <!-- Divider -->
+                    <div class="my-8 border-t border-black/10"></div>
+
+
+                    <!-- Address Information -->
+                    <div>
+
+                        <div class="mb-5">
+                            <h3 class="text-sm font-semibold">
+                                Address Information
+                            </h3>
+
+                            <p class="mt-1 text-xs text-black/45">
+                                Enter the complete delivery address.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                            <!-- Address -->
+                            <div class="sm:col-span-2">
+                                <label for="address"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    Address
+                                </label>
+
+                                <textarea id="address" name="address" rows="3"
+                                    placeholder="House / Flat number, street, area" required
+                                    class="w-full resize-none border border-black/15 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-black/30 focus:border-black"></textarea>
+                            </div>
+
+                            <!-- Landmark -->
+                            <div class="sm:col-span-2">
+                                <label for="landmark"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    Landmark
+                                    <span class="normal-case tracking-normal text-black/30">
+                                        (Optional)
+                                    </span>
+                                </label>
+
+                                <input type="text" id="landmark" name="landmark" placeholder="Nearby landmark"
+                                    class="h-11 w-full border border-black/15 bg-white px-4 text-sm outline-none transition placeholder:text-black/30 focus:border-black">
+                            </div>
+
+                            <!-- Postal Code -->
+                            <div>
+                                <label for="postal_code"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    PIN Code
+                                </label>
+
+                                <input type="text" id="postal_code" name="postal_code" inputmode="numeric" maxlength="6"
+                                    placeholder="6-digit PIN code" required
+                                    class="h-11 w-full border border-black/15 bg-white px-4 text-sm outline-none transition placeholder:text-black/30 focus:border-black">
+
+                                <p id="postal-error" class="mt-1.5 hidden text-xs text-red-600"></p>
+                            </div>
+
+
+                            <!-- City -->
+                            <div>
+                                <label for="city"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    City
+                                </label>
+
+                                <input type="text" id="city" name="city" placeholder="Enter PIN code first" readonly
+                                    required
+                                    class="h-11 w-full cursor-not-allowed border border-black/10 bg-black/[0.03] px-4 text-sm text-black/60 outline-none">
+                            </div>
+
+
+                            <!-- State -->
+                            <div>
+                                <label for="state"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    State
+                                </label>
+
+                                <input type="text" id="state" name="state" placeholder="Enter PIN code first" readonly
+                                    required
+                                    class="h-11 w-full cursor-not-allowed border border-black/10 bg-black/[0.03] px-4 text-sm text-black/60 outline-none">
+                            </div>
+
+
+                            <!-- Country -->
+                            <div>
+                                <label for="country"
+                                    class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                    Country
+                                </label>
+
+                                <input type="text" id="country" name="country" value=""
+                                    placeholder="Enter PIN code first" readonly required
+                                    class="h-11 w-full cursor-not-allowed border border-black/10 bg-black/[0.03] px-4 text-sm text-black/60 outline-none">
+                            </div>
+                        </div>
+
+
+                        <!-- Divider -->
+                        <div class="my-8 border-t border-black/10"></div>
+
+
+                        <!-- Preferences -->
+                        <div>
+
+                            <div class="mb-5">
+                                <h3 class="text-sm font-semibold">
+                                    Delivery Preferences
+                                </h3>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                                <!-- Address Type -->
+                                <div>
+                                    <label for="address_type"
+                                        class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                        Address Type
+                                    </label>
+
+                                    <div class="relative">
+                                        <select id="address_type" name="address_type"
+                                            class="h-12 w-full cursor-pointer appearance-none border border-black/15 bg-white px-4 pr-11 text-sm font-medium outline-none transition hover:border-black/30 focus:border-black">
+                                            <option value="home">Home</option>
+                                            <option value="work">Work</option>
+                                            <option value="other">Other</option>
+                                        </select>
+
+                                        <!-- Chevron -->
+                                        <svg class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+
+                                <!-- Default Address -->
+                                <div>
+                                    <label for="is_default"
+                                        class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                        Delivery Preference
+                                    </label>
+
+                                    <div
+                                        class="flex h-12 items-center justify-between border border-black/15 px-4 transition hover:border-black/30">
+                                        <div class="flex items-center gap-3">
+
+                                            <!-- Home / default icon -->
+                                            <div
+                                                class="flex h-7 w-7 items-center justify-center border border-black/10">
+                                                <svg class="h-3.5 w-3.5 text-black/65" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="1.7">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M3 10.5L12 3l9 7.5" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M5.5 9.5V21h13V9.5" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M9.5 21v-6h5v6" />
+                                                </svg>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-sm font-medium">
+                                                    Default address
+                                                </p>
+
+                                                <p class="text-[11px] text-black/40">
+                                                    Use for future deliveries
+                                                </p>
+                                            </div>
+
+                                        </div>
+
+
+                                        <!-- Custom Toggle -->
+                                        <label class="relative inline-flex cursor-pointer items-center">
+                                            <input type="checkbox" id="is_default" name="is_default"
+                                                class="peer sr-only">
+
+                                            <div
+                                                class="h-6 w-11 rounded-full bg-black/10 transition-colors duration-200 peer-checked:bg-black peer-focus:outline-none">
+                                            </div>
+
+                                            <div
+                                                class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 peer-checked:translate-x-5">
+                                            </div>
+                                        </label>
+
+                                    </div>
+                                </div>
+
+                                <!-- Delivery Instructions -->
+                                <div class="sm:col-span-2">
+                                    <label for="delivery_instructions"
+                                        class="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-black/60">
+                                        Delivery Instructions
+                                        <span class="normal-case tracking-normal text-black/30">
+                                            (Optional)
+                                        </span>
+                                    </label>
+
+                                    <textarea id="delivery_instructions" name="delivery_instructions" rows="2"
+                                        maxlength="255" placeholder="Example: Leave the package at the door."
+                                        class="w-full resize-none border border-black/15 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-black/30 focus:border-black"></textarea>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Footer -->
+                    <div
+                        class="flex flex-col-reverse gap-3 border-t border-black/10 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+
+                        <button type="button" onclick="addressesJS.closeAddressModal()"
+                            class="h-11 border border-black/15 px-6 text-sm font-medium transition hover:border-black hover:bg-black/5">
+                            Cancel
+                        </button>
+
+                        <button id="address-submit-btn" type="submit"
+                            class="h-11 bg-black px-7 text-sm font-medium text-white transition hover:bg-black/85">
+                            Save Address
+                        </button>
+
+                    </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>

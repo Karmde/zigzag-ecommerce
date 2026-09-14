@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    {% include 'partials/header.html' %}
+    <main class="max-w-6xl mx-auto px-5 py-10">
+        <div class="mb-8">
+            <h1 class="text-3xl font-semibold tracking-tight">Track Order</h1>
+            <p class="text-sm text-gray-500 mt-1">Follow your order from confirmation to delivery.</p>
+        </div>
+
+        <div id="loadingState" class="text-center py-20">
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-2 border-black border-t-transparent"></div>
+            <p class="mt-4 text-gray-500 text-sm">Loading tracking details...</p>
+        </div>
+
+        <div id="trackingContent" class="hidden">
+            <!-- ORDER HEADER -->
+            <section class="bg-white border border-gray-200 rounded-2xl px-6 py-5 mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400 mb-1">Order ID</p>
+                        <div class="flex items-center gap-3">
+                            <p class="text-lg font-semibold" id="orderId">#--</p>
+                            <span class="text-gray-300">•</span>
+                            <p class="text-sm text-gray-500" id="orderDate">--</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs uppercase tracking-wider text-gray-400">Current Status</span>
+                        <span id="currentStatusBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide">
+                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                            <span id="currentStatusText">--</span>
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MAIN CONTENT -->
+            <section class="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-6">
+                <!-- ORDER STATUS / TIMELINE -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-7">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <p class="text-xs font-medium uppercase tracking-[0.15em] text-gray-400">Order Status</p>
+                            <p class="text-xl font-semibold mt-1">Delivery Progress</p>
+                        </div>
+                        <span id="timelineCount" class="text-xs text-gray-400">--</span>
+                    </div>
+
+                    <div id="timelineContainer" class="relative"></div>
+                </div>
+
+                <!-- RIGHT SIDEBAR -->
+                <div class="space-y-6">
+                    <!-- DELIVERY ADDRESS -->
+                    <div class="bg-white border border-gray-200 rounded-2xl p-7">
+                        <p class="text-xs font-medium uppercase tracking-[0.15em] text-gray-400">Delivery Address</p>
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between">
+                                <p class="text-base font-semibold" id="addressName">--</p>
+                                <span id="addressType" class="text-[10px] font-semibold uppercase tracking-wider border border-gray-200 px-2 py-1 rounded-full text-gray-500">--</span>
+                            </div>
+                            <div class="mt-4 space-y-1 text-sm text-gray-500 leading-relaxed" id="addressDetails">
+                                <p>--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESTIMATED DELIVERY -->
+                    <div class="bg-black text-white rounded-2xl p-6">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-gray-400">Estimated Delivery</p>
+                                <p class="text-2xl font-semibold tracking-tight mt-3" id="estimatedDelivery">--</p>
+                                <p class="text-sm text-gray-400 mt-1.5" id="deliveryMessage">Your package is on its way.</p>
+                            </div>
+                            <span id="deliveryStatusBadge" class="text-[10px] font-medium uppercase tracking-wider border border-gray-700 text-gray-300 px-2.5 py-1.5 rounded-full">--</span>
+                        </div>
+                    </div>
+
+                    <!-- PAYMENT -->
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-gray-400">Payment</p>
+                                <div class="flex items-center gap-3 mt-4">
+                                    <p class="text-sm font-semibold" id="paymentMethod">--</p>
+                                    <span class="text-gray-400">•</span>
+                                    <p class="text-sm text-gray-500" id="paymentAmount">--</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span id="paymentStatusBadge" class="inline-flex items-center px-2.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider">
+                                    --
+                                </span>
+                                <p class="text-[11px] text-gray-400 mt-2" id="paymentMessage">Payment completed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ORDER ITEMS -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 mt-6">
+                <div class="flex items-center justify-between mb-7">
+                    <div>
+                        <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-gray-400">Order Items</p>
+                        <h2 class="text-lg font-semibold mt-1" id="itemsCount">--</h2>
+                    </div>
+                </div>
+                <div id="itemsContainer"></div>
+            </div>
+
+            <!-- ORDER SUMMARY -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 mt-6">
+                <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-gray-400">Order Summary</p>
+                <div class="mt-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-500">Subtotal</span>
+                        <span class="text-sm font-medium" id="summarySubtotal">--</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-500">Discount</span>
+                        <span class="text-sm font-medium text-green-600" id="summaryDiscount">--</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-500">Shipping</span>
+                        <span class="text-sm font-medium" id="summaryShipping">--</span>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 my-5"></div>
+                <div class="flex items-end justify-between">
+                    <div>
+                        <p class="text-sm font-medium">Total</p>
+                        <p class="text-xs text-gray-400 mt-1">Inclusive of all charges</p>
+                    </div>
+                    <p class="text-xl font-semibold tracking-tight" id="summaryTotal">--</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    {% include 'partials/footer.html' %}
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const orderId = parseInt(params.get('order_id'), 10);
+            const itemId = parseInt(params.get('item_id'), 10);
+
+            const loadingEl = document.getElementById('loadingState');
+            const errorEl = document.getElementById('errorState');
+            const contentEl = document.getElementById('trackingContent');
+
+            function formatINR(value) {
+                const n = Math.round(Number(value || 0));
+                if (!Number.isFinite(n)) return '₹0';
+                return '₹' + n.toLocaleString('en-IN');
+            }
+
+            function toNumber(value) {
+                const n = parseFloat(value || 0);
+                return Number.isFinite(n) ? n : 0;
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                if (Number.isNaN(d.getTime())) return '';
+                return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+
+            function setText(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            }
+
+            function renderTimeline(timeline) {
+                const container = document.getElementById('timelineContainer');
+                container.innerHTML = '';
+
+                if (!timeline || !timeline.length) {
+                    setText('timelineCount', '0 steps');
+                    return;
+                }
+
+                const allCompleted = timeline.every(t => t.completed);
+                const completedCount = timeline.filter(t => t.completed).length;
+                setText('timelineCount', completedCount + ' of ' + timeline.length + ' steps');
+
+                timeline.forEach((step, index) => {
+                    const isLast = index === timeline.length - 1;
+                    const isCurrent = step.current;
+                    const item = document.createElement('div');
+                    item.className = 'relative flex gap-5 pb-9';
+
+                    if (isCurrent) {
+                        item.innerHTML = `
+                            <div class="absolute left-[11px] top-7 bottom-0 w-px bg-gray-200"></div>
+                            <div class="relative z-10 w-6 h-6 rounded-full bg-[#E8A020] ring-4 ring-orange-50 shrink-0"></div>
+                            <div class="pt-0.5">
+                                <div class="flex items-center gap-3">
+                                    <h3 class="text-sm font-semibold">${step.title}</h3>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider text-[#E8A020] bg-orange-50 px-2 py-1 rounded-full">Current</span>
+                                </div>
+                                ${step.time ? '<p class="text-xs text-gray-400 mt-1">' + formatDate(step.time) + '</p>' : ''}
+                                <p class="text-sm text-gray-500 mt-2">${step.description}</p>
+                            </div>
+                        `;
+                    } else if (step.completed) {
+                        item.innerHTML = `
+                            <div class="absolute left-[11px] top-7 bottom-0 w-px bg-black"></div>
+                            <div class="relative z-10 w-6 h-6 rounded-full bg-black flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div class="pt-0.5">
+                                <h3 class="text-sm font-semibold">${step.title}</h3>
+                                ${allCompleted && isLast && step.time ? '<p class="text-xs text-gray-400 mt-1">' + formatDate(step.time) + '</p>' : ''}
+                                <p class="text-sm text-gray-500 mt-2">${step.description}</p>
+                            </div>
+                        `;
+                    } else {
+                        item.innerHTML = `
+                            <div class="absolute left-[11px] top-7 bottom-0 w-px bg-gray-200"></div>
+                            <div class="relative z-10 w-6 h-6 rounded-full border-2 border-gray-200 bg-white shrink-0"></div>
+                            <div class="pt-0.5">
+                                <h3 class="text-sm font-medium text-gray-400">${step.title}</h3>
+                            </div>
+                        `;
+                    }
+
+                    container.appendChild(item);
+                });
+            }
+
+            function renderItems(items) {
+                const container = document.getElementById('itemsContainer');
+                container.innerHTML = '';
+
+                if (!items || !items.length) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">No items found.</p>';
+                    return;
+                }
+
+                setText('itemsCount', items.length + ' Product' + (items.length > 1 ? 's' : ''));
+
+                items.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'flex gap-5 py-5 first:pt-0';
+
+                    const imageHtml = item.product_image
+                        ? '<img src="' + item.product_image + '" alt="' + item.product_name + '" class="w-full h-full object-contain">'
+                        : '<div class="w-full h-full flex items-center justify-center bg-gray-100 text-xs text-gray-400">No image</div>';
+
+                    const variantInfo = [item.color_name, item.size_name].filter(Boolean).join(' <span class="mx-1">•</span> ');
+
+                    const couponDiscount = parseFloat(item.coupon_discount || 0);
+                    const discountedTotal = parseFloat(item.line_total || 0) - couponDiscount;
+
+                    row.innerHTML = `
+                        <div class="w-24 h-28 bg-white rounded-xl overflow-hidden shrink-0">${imageHtml}</div>
+                        <div class="flex-1 min-w-0 flex flex-col justify-between py-1">
+                            <div>
+                                <p class="text-sm font-semibold truncate">${item.product_name}</p>
+                                <p class="text-xs text-gray-400 mt-1.5">${variantInfo || ''}</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-5">
+                                <p class="text-xs text-gray-500">Qty ${item.quantity}</p>
+                                <p class="text-xl font-semibold">${formatINR(discountedTotal)}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(row);
+                });
+            }
+
+            async function loadTracking() {
+                const loadingEl = document.getElementById('loadingState');
+                const errorEl = document.getElementById('errorState');
+                const contentEl = document.getElementById('trackingContent');
+
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (errorEl) errorEl.classList.add('hidden');
+                if (contentEl) contentEl.classList.remove('hidden');
+
+                if (!window.auth || typeof window.auth.authFetch !== 'function') {
+                    return;
+                }
+
+                if (!orderId || !itemId) {
+                    return;
+                }
+
+                try {
+                    const response = await window.auth.authFetch('/orders/' + orderId + '/items/' + itemId + '/tracking');
+                    let data;
+                    try {
+                        data = await response.json();
+                    } catch (jsonError) {
+                        console.error('JSON parse error:', jsonError);
+                        return;
+                    }
+                    try {
+                        renderTracking(data);
+                    } catch (renderError) {
+                        console.error('renderTracking error:', renderError);
+                    }
+                } catch (e) {
+                    console.error('loadTracking error:', e);
+                }
+            }
+
+            function renderTracking(data) {
+                try {
+                    const order = data.order || {};
+                    const item = data.item || {};
+                    const timeline = data.timeline || [];
+                    const status = item.status || 'pending';
+
+                    setText('orderId', '#' + order.id);
+                    setText('orderDate', formatDate(order.created_at));
+
+                    const statusConfig = {
+                        pending: { label: 'Pending', bg: 'bg-yellow-50', text: 'text-yellow-700' },
+                        confirmed: { label: 'Confirmed', bg: 'bg-blue-50', text: 'text-blue-700' },
+                        processing: { label: 'Processing', bg: 'bg-purple-50', text: 'text-purple-700' },
+                        shipped: { label: 'Shipped', bg: 'bg-indigo-50', text: 'text-indigo-700' },
+                        delivered: { label: 'Delivered', bg: 'bg-green-50', text: 'text-green-700' },
+                        cancelled: { label: 'Cancelled', bg: 'bg-red-50', text: 'text-red-700' },
+                        returned: { label: 'Returned', bg: 'bg-gray-100', text: 'text-gray-700' },
+                    };
+
+                    const statusInfo = statusConfig[status] || statusConfig.pending;
+                    const badge = document.getElementById('currentStatusBadge');
+                    if (badge) {
+                        badge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide ' + statusInfo.bg + ' ' + statusInfo.text;
+                    }
+                    setText('currentStatusText', statusInfo.label);
+
+                    if (data.show_timeline) {
+                        renderTimeline(timeline);
+
+                        const totalSteps = timeline.length;
+                        const currentStepIndex = timeline.findIndex(t => t.current);
+                        let deliveryDate;
+                        if (status === 'delivered') {
+                            deliveryDate = new Date();
+                        } else if (currentStepIndex >= 0) {
+                            const remainingSteps = totalSteps - currentStepIndex - 1;
+                            const deliveryDays = remainingSteps + 1;
+                            deliveryDate = new Date();
+                            deliveryDate.setDate(deliveryDate.getDate() + deliveryDays);
+                        } else {
+                            const deliveryDays = totalSteps;
+                            deliveryDate = new Date();
+                            deliveryDate.setDate(deliveryDate.getDate() + deliveryDays);
+                        }
+                        setText('estimatedDelivery', deliveryDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+                        setText('deliveryStatusBadge', statusInfo.label);
+                    } else {
+                        setText('timelineCount', '0 steps');
+                        document.getElementById('timelineContainer').innerHTML = '<p class="text-sm text-gray-500">Tracking timeline is not available for cancelled or returned items.</p>';
+                        setText('estimatedDelivery', 'N/A');
+                        setText('deliveryStatusBadge', statusInfo.label);
+                    }
+
+                    setText('addressName', order.full_name || '--');
+                    setText('addressType', (order.address_type || 'home').toUpperCase());
+                    const addressDetails = document.getElementById('addressDetails');
+                    if (addressDetails) {
+                        const parts = [order.address, order.landmark, order.city, order.state, order.country, order.postal_code].filter(Boolean);
+                        addressDetails.innerHTML = parts.map(p => '<p>' + p + '</p>').join('');
+                    }
+
+                    setText('paymentMethod', (order.payment_method || '--').toUpperCase());
+                    setText('paymentAmount', formatINR(order.total_amount));
+
+                    const paymentStatusBadge = document.getElementById('paymentStatusBadge');
+                    if (paymentStatusBadge) {
+                        const ps = (order.payment_status || 'pending').toLowerCase();
+                        const psConfig = {
+                            pending: 'bg-yellow-50 text-yellow-700',
+                            paid: 'bg-green-50 text-green-700',
+                            refunded: 'bg-gray-100 text-gray-700',
+                            failed: 'bg-red-50 text-red-700',
+                            partially_refunded: 'bg-orange-50 text-orange-700',
+                        };
+                        paymentStatusBadge.className = 'inline-flex items-center px-2.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ' + (psConfig[ps] || 'bg-gray-50 text-gray-700');
+                        paymentStatusBadge.textContent = (order.payment_status || 'pending').charAt(0).toUpperCase() + (order.payment_status || 'pending').slice(1);
+                    }
+
+                    renderItems([item]);
+
+                    const subtotal = toNumber(order.subtotal);
+                    const discount = toNumber(order.discount);
+                    const total = toNumber(order.total_amount);
+
+                    setText('summarySubtotal', formatINR(subtotal));
+                    setText('summaryDiscount', '-' + formatINR(discount));
+                    setText('summaryShipping', 'Free');
+                    setText('summaryTotal', formatINR(total));
+                } catch (err) {
+                    console.error('renderTracking error:', err);
+                }
+            }
+
+            loadTracking();
+        })();
+    </script>
+</body>
+</html>
