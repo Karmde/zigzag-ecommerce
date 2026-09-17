@@ -101,11 +101,11 @@
                         <span>Categories</span>
                     </a>
 
-                    <a href="#customers"
+                    <a href="#users"
                         class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 transition"
-                        data-tab="customers">
+                        data-tab="users">
                         <i class="fa-solid fa-users w-5 text-center"></i>
-                        <span>Customers</span>
+                        <span>Users</span>
                     </a>
 
                     <a href="#coupons"
@@ -197,8 +197,8 @@
                     </div>
                 </div>
 
-                <!-- Customers Tab -->
-                <div id="tab-customers" class="tab-content active">
+                <!-- Users Tab -->
+                <div id="tab-users" class="tab-content active">
                     <div class="flex items-center justify-between px-6 py-5 border-b border-gray-200">
                         <div>
                             <h2 class="text-2xl font-semibold text-black">
@@ -209,12 +209,20 @@
                             </p>
                         </div>
 
-                        <input type="text" placeholder="Search by email/id..."
+                        <input type="text" id="userSearchInput" placeholder="Search by email or user ID..."
                             class="w-72 h-11 px-4 rounded-lg border border-gray-300 outline-none focus:border-black transition">
                     </div>
 
+                    <div id="userEmptyState" class="flex flex-col items-center justify-center py-20 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                        </svg>
+                        <p class="text-lg font-medium text-gray-600">Search for a user</p>
+                        <p class="text-sm text-gray-400 mt-1">Enter a user ID or email address to view details.</p>
+                    </div>
+
                     <!-- Table -->
-                    <div class="overflow-x-auto">
+                    <div id="userTableContainer" class="overflow-x-auto hidden">
                         <table class="w-full">
 
                             <thead class="bg-gray-50">
@@ -226,7 +234,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody>
+                            <tbody id="usersTableBody">
 
                                 <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
                                     <td class="px-6 py-5 font-medium text-gray-900">
@@ -241,30 +249,6 @@
                                         <span
                                             class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
                                             ● Active
-                                        </span>
-                                    </td>
-
-                                    <td class="px-6 py-5 text-center">
-                                        <button
-                                            class="view-user-btn rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
-                                            View Details
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
-                                    <td class="px-6 py-5 font-medium text-gray-900">
-                                        #0002
-                                    </td>
-
-                                    <td class="px-6 py-5 text-gray-700">
-                                        jane@example.com
-                                    </td>
-
-                                    <td class="px-6 py-5">
-                                        <span
-                                            class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
-                                            ● Blocked
                                         </span>
                                     </td>
 
@@ -313,7 +297,8 @@
                                 </thead>
                                 <tbody id="couponsTableBody">
                                     <tr class="border-t border-gray-200">
-                                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading coupons...</td>
+                                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading coupons...
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -624,7 +609,8 @@
                                     Description
                                 </label>
 
-                                <textarea id="couponDescription" rows="4" placeholder="Example: Get 10% OFF on orders above ₹999."
+                                <textarea id="couponDescription" rows="4"
+                                    placeholder="Example: Get 10% OFF on orders above ₹999."
                                     class="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-black focus:ring-2 focus:ring-black/10"></textarea>
 
                                 <p class="mt-2 text-xs text-gray-500">
@@ -905,63 +891,65 @@
                                 <input type="text" id="categorySearch" placeholder="Search categories..."
                                     class="mb-3 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/10">
 
-                                <div id="categoryList" class="max-h-52 space-y-2 overflow-y-auto rounded-xl border border-gray-300 p-4">
+                                <div id="categoryList"
+                                    class="max-h-52 space-y-2 overflow-y-auto rounded-xl border border-gray-300 p-4">
 
-                            </div>
+                                </div>
 
-                            <!-- Products -->
-                            <div id="productContainer" class="hidden overflow-hidden transition-all duration-300">
+                                <!-- Products -->
+                                <div id="productContainer" class="hidden overflow-hidden transition-all duration-300">
 
-                                <label class="mb-2 block text-sm font-medium text-gray-700">
-                                    Products
-                                </label>
+                                    <label class="mb-2 block text-sm font-medium text-gray-700">
+                                        Products
+                                    </label>
 
-                                <input type="text" id="productSearch" placeholder="Search products..."
-                                    class="mb-3 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/10">
+                                    <input type="text" id="productSearch" placeholder="Search products..."
+                                        class="mb-3 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black focus:ring-2 focus:ring-black/10">
 
-                                <div id="productList" class="max-h-52 space-y-2 overflow-y-auto rounded-xl border border-gray-300 p-4">
+                                    <div id="productList"
+                                        class="max-h-52 space-y-2 overflow-y-auto rounded-xl border border-gray-300 p-4">
 
-                            </div>
-
-                        </div>
-
-                        <!-- Right Side -->
-                        <div>
-
-                            <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-
-                                <h4 class="font-semibold text-black">
-                                    Eligibility Summary
-                                </h4>
-
-                                <div class="mt-5 space-y-4 text-sm">
-
-                                    <div>
-                                        <p class="text-gray-500">Minimum Cart</p>
-                                        <p id="minCartDisplay" class="font-semibold text-black">₹0</p>
                                     </div>
 
-                                    <div>
-                                        <p class="text-gray-500">Applicable To</p>
-                                        <p id="eligibilityPreview" class="font-semibold text-black">
-                                            Entire Store
-                                        </p>
-                                    </div>
+                                </div>
 
-                                    <div>
-                                        <p class="text-gray-500">Selected Items</p>
-                                        <p id="selectedCount" class="font-semibold text-black">
-                                            All Products
-                                        </p>
+                                <!-- Right Side -->
+                                <div>
+
+                                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+
+                                        <h4 class="font-semibold text-black">
+                                            Eligibility Summary
+                                        </h4>
+
+                                        <div class="mt-5 space-y-4 text-sm">
+
+                                            <div>
+                                                <p class="text-gray-500">Minimum Cart</p>
+                                                <p id="minCartDisplay" class="font-semibold text-black">₹0</p>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-gray-500">Applicable To</p>
+                                                <p id="eligibilityPreview" class="font-semibold text-black">
+                                                    Entire Store
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <p class="text-gray-500">Selected Items</p>
+                                                <p id="selectedCount" class="font-semibold text-black">
+                                                    All Products
+                                                </p>
+                                            </div>
+
+                                        </div>
+
                                     </div>
 
                                 </div>
 
                             </div>
-
-                        </div>
-
-                    </div>
 
                 </section>
 
@@ -1066,6 +1054,224 @@
         </div>
 
     </div>
+    <!-- User Details Modal -->
+    <div id="userDetailsModal"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+    
+        <div class="w-full max-w-2xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+    
+            <!-- Header -->
+            <div class="relative border-b border-gray-200 px-7 py-6">
+    
+                <div class="flex items-start justify-between">
+    
+                    <div class="flex items-center gap-4">
+    
+                        <!-- User Avatar -->
+                        <div
+                            class="flex h-14 w-14 items-center justify-center rounded-xl bg-black text-lg font-semibold text-white"
+                            id="userModalAvatar">
+                            JD
+                        </div>
+    
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl font-semibold tracking-tight text-black" id="userModalTitle">
+                                    User Details
+                                </h2>
+    
+                                <span id="userModalStatusBadge"
+                                    class="rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-semibold text-green-700">
+                                    Active
+                                </span>
+                            </div>
+    
+                            <p class="mt-1 text-sm text-gray-500">
+                                Account information and security status
+                            </p>
+                        </div>
+    
+                    </div>
+    
+                    <!-- Close -->
+                    <button id="closeUserDetailsModal"
+                        class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-black">
+    
+                        <span class="text-xl leading-none">&times;</span>
+    
+                    </button>
+    
+                </div>
+    
+            </div>
+    
+    
+            <!-- Content -->
+            <div class="max-h-[70vh] overflow-y-auto px-7 py-6">
+    
+                <!-- Account Overview -->
+                <div class="mb-6">
+    
+                    <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Account Overview
+                    </p>
+    
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    
+                        <!-- User ID -->
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+                            <p class="text-xs text-gray-500">User ID</p>
+    
+                            <p class="mt-1 text-sm font-semibold text-black" id="userModalId">
+                                #1001
+                            </p>
+                        </div>
+    
+                        <!-- Email -->
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+                            <p class="text-xs text-gray-500">Email</p>
+    
+                            <p class="mt-1 truncate text-sm font-semibold text-black" id="userModalEmail">
+                                john.doe@example.com
+                            </p>
+                        </div>
+    
+                        <!-- Auth Provider -->
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+                            <p class="text-xs text-gray-500">Auth Provider</p>
+    
+                            <p class="mt-1 text-sm font-semibold text-black" id="userModalProvider">
+                                Email
+                            </p>
+                        </div>
+    
+                        <!-- Role -->
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+                            <p class="text-xs text-gray-500">Role</p>
+    
+                            <p class="mt-1 text-sm font-semibold text-black" id="userModalRole">
+                                Customer
+                            </p>
+                        </div>
+    
+                    </div>
+    
+                </div>
+    
+    
+                <!-- Account Activity -->
+                <div class="mb-6">
+    
+                    <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Account Activity
+                    </p>
+    
+                    <div class="overflow-hidden rounded-xl border border-gray-200">
+    
+                        <!-- Created -->
+                        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4">
+    
+                            <div>
+                                <p class="text-sm font-medium text-black">
+                                    Account Created
+                                </p>
+    
+                                <p class="mt-0.5 text-xs text-gray-500">
+                                    Date the account was registered
+                                </p>
+                            </div>
+    
+                            <p class="text-sm font-medium text-black" id="userModalCreated">
+                                12 Sep 2026
+                            </p>
+    
+                        </div>
+    
+    
+                        <!-- Last Login -->
+                        <div class="flex items-center justify-between px-4 py-4">
+    
+                            <div>
+                                <p class="text-sm font-medium text-black">
+                                    Last Login
+                                </p>
+    
+                                <p class="mt-0.5 text-xs text-gray-500">
+                                    Most recent authenticated session
+                                </p>
+                            </div>
+    
+                            <p class="text-right text-sm font-medium text-black" id="userModalLastLogin">
+                                16 Sep 2026
+                                <span class="block text-xs font-normal text-gray-500">
+                                    09:42 AM
+                                </span>
+                            </p>
+    
+                        </div>
+    
+                    </div>
+    
+                </div>
+    
+    
+                <!-- Security -->
+                <div>
+    
+                    <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Security
+                    </p>
+    
+                    <div class="rounded-xl border border-gray-200 p-4">
+    
+                        <div class="flex items-center justify-between">
+    
+                            <div>
+                                <p class="text-sm font-medium text-black">
+                                    Account Lock Status
+                                </p>
+    
+                                <p class="mt-0.5 text-xs text-gray-500">
+                                    Whether the account is currently locked
+                                </p>
+                            </div>
+    
+                            <div class="flex items-center gap-2">
+    
+                                <span class="h-2 w-2 rounded-full bg-green-500"></span>
+    
+                                <span class="text-sm font-semibold text-green-700" id="userModalLockStatus">
+                                    Not Locked
+                                </span>
+    
+                            </div>
+    
+                        </div>
+    
+                    </div>
+    
+                </div>
+    
+            </div>
+    
+    
+            <!-- Footer -->
+            <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50/70 px-7 py-4">
+    
+                <p class="text-xs text-gray-400" id="userModalFooterId">
+                    User #1001
+                </p>
+    
+                <button id="closeUserDetailsModalBottom"
+                    class="rounded-lg bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800">
+                    Close
+                </button>
+    
+            </div>
+    
+        </div>
+    
+    </div>
     <script src="\js\auth.js"></script>
     <script>
         const navLinks = document.querySelectorAll('.nav-link');
@@ -1108,7 +1314,7 @@
             switchTab(initialTab);
             if (initialTab === 'coupons') loadCoupons();
         } else if (!initialTab) {
-            switchTab('customers');
+            switchTab('users');
         }
 
         window.addEventListener('popstate', function () {
@@ -1620,6 +1826,193 @@
                     const text = item.textContent.toLowerCase();
                     item.style.display = text.includes(query) ? '' : 'none';
                 });
+            });
+        }
+
+
+        // user modal and search
+        const userDetailsModal = document.getElementById("userDetailsModal");
+        const userSearchInput = document.getElementById("userSearchInput");
+        const userEmptyState = document.getElementById("userEmptyState");
+        const userTableContainer = document.getElementById("userTableContainer");
+        const usersTableBody = document.getElementById("usersTableBody");
+
+        function formatDate(value) {
+            if (!value) return "N/A";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "N/A";
+            return date.toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+            });
+        }
+
+        function formatDateTime(value) {
+            if (!value) return "N/A";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "N/A";
+            const dateStr = date.toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+            });
+            const timeStr = date.toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+            });
+            return `${dateStr}<br><span class="text-xs font-normal text-gray-500">${timeStr}</span>`;
+        }
+
+        function formatINR(value) {
+            const number = Number(value || 0);
+            if (Number.isNaN(number)) return "₹0";
+            return "₹" + Math.round(number).toLocaleString("en-IN");
+        }
+
+        function getUserInitials(name) {
+            if (!name) return "U";
+            const parts = name.trim().split(" ");
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+            return name.slice(0, 2).toUpperCase();
+        }
+
+        function getStatusBadge(isActive) {
+            if (isActive) {
+                return `<span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">● Active</span>`;
+            }
+            return `<span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">● Blocked</span>`;
+        }
+
+        function getStatusBadgeClass(isActive) {
+            if (isActive) {
+                return "bg-green-50 text-green-700";
+            }
+            return "bg-red-50 text-red-700";
+        }
+
+        function setModalLoading() {
+            document.getElementById("userModalTitle").textContent = "Loading...";
+            document.getElementById("userModalAvatar").textContent = "...";
+            document.getElementById("userModalId").textContent = "---";
+            document.getElementById("userModalEmail").textContent = "Loading...";
+            document.getElementById("userModalProvider").textContent = "---";
+            document.getElementById("userModalRole").textContent = "---";
+            document.getElementById("userModalCreated").textContent = "---";
+            document.getElementById("userModalLastLogin").innerHTML = "---";
+            document.getElementById("userModalLockStatus").textContent = "---";
+            document.getElementById("userModalFooterId").textContent = "---";
+        }
+
+        async function loadUserDetails(userId) {
+            setModalLoading();
+            userDetailsModal.classList.remove("hidden");
+            userDetailsModal.classList.add("flex");
+
+            try {
+                const response = await window.auth.authFetch(`/admin/users/${userId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to load user details.");
+                }
+                const data = await response.json();
+
+                document.getElementById("userModalTitle").textContent = `${data.first_name} ${data.last_name}`;
+                document.getElementById("userModalAvatar").textContent = getUserInitials(`${data.first_name} ${data.last_name}`);
+
+                const statusBadge = document.getElementById("userModalStatusBadge");
+                statusBadge.textContent = data.is_active ? "Active" : "Blocked";
+                statusBadge.className = `rounded-full px-2.5 py-1 text-[11px] font-semibold ${getStatusBadgeClass(data.is_active)}`;
+
+                document.getElementById("userModalId").textContent = `#${String(data.id).padStart(4, "0")}`;
+                document.getElementById("userModalEmail").textContent = data.email;
+                document.getElementById("userModalProvider").textContent = data.auth_provider ? data.auth_provider.charAt(0).toUpperCase() + data.auth_provider.slice(1) : "Local";
+                document.getElementById("userModalRole").textContent = data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : "Customer";
+                document.getElementById("userModalCreated").textContent = formatDate(data.created_at);
+                document.getElementById("userModalLastLogin").innerHTML = `${formatDateTime(data.last_login_at)}`;
+                document.getElementById("userModalLockStatus").textContent = "Not Locked";
+                document.getElementById("userModalFooterId").textContent = `User #${String(data.id).padStart(4, "0")}`;
+            } catch (err) {
+                window.showToast("Error", err.message || "Failed to load user details.", "info");
+                closeUserDetailsModal();
+            }
+        }
+
+        function closeUserDetailsModal() {
+            userDetailsModal.classList.add("hidden");
+            userDetailsModal.classList.remove("flex");
+        }
+
+        document.getElementById("closeUserDetailsModal").addEventListener("click", closeUserDetailsModal);
+        document.getElementById("closeUserDetailsModalBottom").addEventListener("click", closeUserDetailsModal);
+        userDetailsModal.addEventListener("click", (event) => {
+            if (event.target === userDetailsModal) {
+                closeUserDetailsModal();
+            }
+        });
+
+        let userSearchDebounce = null;
+
+        async function searchUsers() {
+            const query = userSearchInput.value.trim();
+            if (!query) {
+                userEmptyState.classList.remove("hidden");
+                userTableContainer.classList.add("hidden");
+                usersTableBody.innerHTML = "";
+                return;
+            }
+
+            try {
+                const response = await window.auth.authFetch(`/admin/users/search?search=${encodeURIComponent(query)}`);
+                if (!response.ok) {
+                    throw new Error("Search failed.");
+                }
+                const users = await response.json();
+
+                userEmptyState.classList.add("hidden");
+                userTableContainer.classList.remove("hidden");
+
+                if (!users.length) {
+                    usersTableBody.innerHTML = `<tr class="border-t border-gray-200"><td colspan="4" class="px-6 py-8 text-center text-gray-500">No users found.</td></tr>`;
+                    return;
+                }
+
+                usersTableBody.innerHTML = users.map(user => `
+                    <tr class="border-t border-gray-200 hover:bg-gray-50 transition">
+                        <td class="px-6 py-5 font-medium text-gray-900">#${String(user.id).padStart(4, "0")}</td>
+                        <td class="px-6 py-5 text-gray-700">${user.email}</td>
+                        <td class="px-6 py-5">${getStatusBadge(user.is_active)}</td>
+                        <td class="px-6 py-5 text-center">
+                            <button data-user-id="${user.id}" class="view-user-btn rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+                                View Details
+                            </button>
+                        </td>
+                    </tr>
+                `).join("");
+
+                document.querySelectorAll(".view-user-btn").forEach(button => {
+                    button.addEventListener("click", () => {
+                        const userId = parseInt(button.dataset.userId, 10);
+                        loadUserDetails(userId);
+                    });
+                });
+            } catch (err) {
+                window.showToast("Error", err.message || "Search failed.", "info");
+            }
+        }
+
+        if (userSearchInput) {
+            userSearchInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    searchUsers();
+                }
+            });
+
+            userSearchInput.addEventListener("input", () => {
+                if (userSearchDebounce) clearTimeout(userSearchDebounce);
+                userSearchDebounce = setTimeout(searchUsers, 300);
             });
         }
     </script>
